@@ -6,11 +6,12 @@ import unimagdalena.edu.co.Taller1.domine.entities.BookingItem;
 import unimagdalena.edu.co.Taller1.domine.entities.Flight;
 
 @Component
-public class BookingItemMapper {
-    private FlightMapper flightMapper;
+public class BokingItemMapper {
+
+    private final FlightMapper flightMapper;
 
 
-    public void BokingItemMapper(FlightMapper flightMapper) {
+    public BokingItemMapper(FlightMapper flightMapper) {
         this.flightMapper = flightMapper;
     }
 
@@ -43,19 +44,12 @@ public class BookingItemMapper {
 
     }
 
-    public  BookingItemDtos.BookingItemResponse toResponse(BookingItem item) {
+    public static  BookingItemDtos.BookingItemResponse toResponse(BookingItem item) {
         if (item == null) return null;
         return new BookingItemDtos.BookingItemResponse(
                 item.getId(), item.getPrice(), item.getSegmentOrder(),
-                item.getCabin(),PARAMETRO_FALTANTE ,flightMapper.toResponse(item.getFlight())
-                /*
-                    public record BookingItemResponse(Long id,
-                    BigDecimal price, Integer segmentOrder,
-                    Cabin cabin, BookingDtos.BookingResponse bookingDto,
-                    FlightDtos.FlightResponse flightDto)
-                 */
+                item.getCabin(),flightMapper.toResponse(item.getFlight())
         );
-
     }
 }
 
