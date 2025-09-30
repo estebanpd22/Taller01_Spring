@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BookingMapper {
-    private final PassengerMapper passengerMapper;
-    private final BokingItemMapper bokingItemMapper;
+    private static PassengerMapper passengerMapper;
+    private static BokingItemMapper bokingItemMapper;
 
     public BookingMapper(PassengerMapper passengerMapper, BokingItemMapper bokingItemMapper) {
         this.passengerMapper = passengerMapper;
@@ -40,25 +40,20 @@ public class BookingMapper {
         if (passenger != null) booking.setPassenger(passenger);
     }
 
-    public BookingDtos.BookingResponse toResponse(Booking booking) {
+    public static BookingDtos.BookingResponse toResponse(Booking booking) {
         if (booking == null) return null;
 
         List<BookingItemDtos.BookingItemResponse> itemsResponse =
                 CollectionUtils.isEmpty(booking.getItems())?
                         new ArrayList<>() :
                         booking.getItems().stream()
-                                .map(bokingItemMapper.toResponse)
+                                .map(bokingItemMapper::toResponse)
                                 .toList();
         return new BookingDtos.BookingResponse(
                 booking.getId(),
                 booking.getCreatedAt(),
-                passengerMapper
-                passengerMapper.toResponse(booking.getPassenger())
-
-                /*
-                BookingResponse(Long id, OffsetDateTime
-                createdAt, PassengerDtos.PassengerResponse passengerDto
-                 */
+                passengerMapper.toResponse(booking.getPassenger()),
+                itemsResponse
         );
 
     }

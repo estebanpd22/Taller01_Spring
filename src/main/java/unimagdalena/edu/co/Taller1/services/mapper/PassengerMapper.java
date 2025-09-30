@@ -15,7 +15,6 @@ public class PassengerMapper {
 
     }
 
-
     public static void UpdateEntity(PassengerDtos.PassengerUpdateRequest dto, Passenger passenger, PassengerProfile profile) {
         if (passenger == null || dto == null) return;
         if (dto.fullname() != null) {

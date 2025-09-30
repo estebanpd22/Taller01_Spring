@@ -27,5 +27,17 @@ public interface SeatInventoryRepository extends JpaRepository<SeatInventory,Lon
     boolean hasAvailableSeats(@Param("flightId") Long flightId,
                               @Param("cabin") Cabin cabin,
                               @Param("min") Integer min);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE SeatInventory s SET s.availableSeats = s.availableSeats - :qty " +
+            "WHERE s.flight.id = :flightId AND s.cabin = :cabin AND s.availableSeats >= :qty")
+    int decrementAvailableSeats(@Param("flightId") Long flightId, @Param("cabin") Cabin cabin, @Param("qty") int qty);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE SeatInventory s SET s.availableSeats = s.availableSeats + :qty " +
+            "WHERE s.flight.id = :flightId AND s.cabin = :cabin")
+    int incrementAvailableSeats(@Param("flightId") Long flightId, @Param("cabin") Cabin cabin, @Param("qty") int qty);
 }
 
