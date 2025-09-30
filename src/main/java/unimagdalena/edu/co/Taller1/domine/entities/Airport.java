@@ -1,8 +1,10 @@
 package unimagdalena.edu.co.Taller1.domine.entities;
 
+
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
 
 @Entity
 @Table(name = "Airports")
@@ -13,17 +15,13 @@ import java.util.List;
 @Builder
 public class Airport {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "airport_id")
     private Long id;
-
+    @Column(unique = true)
     private String code;
+    @Column(nullable = false)
     private String name;
     private String city;
 
-    @OneToMany(mappedBy = "origin", orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Flight> departures;
-
-    @OneToMany(mappedBy = "destination", orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Flight> arrivals;
 }
-

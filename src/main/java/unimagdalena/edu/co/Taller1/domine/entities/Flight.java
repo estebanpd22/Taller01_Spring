@@ -39,5 +39,12 @@ public class Flight {
             joinColumns = @JoinColumn(name = "flight_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id")
     )
+
+    @Builder.Default
     private Set<Tag> tags;
+
+    public void addTag(Tag tag) {
+        tags.add(tag);
+        tag.getFlights().add(this);
+    }
 }
