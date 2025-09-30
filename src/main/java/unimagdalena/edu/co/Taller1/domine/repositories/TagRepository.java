@@ -13,5 +13,5 @@ public interface TagRepository extends JpaRepository<Tag,Long> {
     Optional<Tag> findByNameIgnoreCase(String name);
 
     // Retorna todas las etiquetas cuyos nombres estén en la lista dada
-    List<Tag> findByNameIgnoreCaseIn(Collection<String> names, Limit limit);
+    List<Tag> findByNameIn(Collection<String> names);
 }

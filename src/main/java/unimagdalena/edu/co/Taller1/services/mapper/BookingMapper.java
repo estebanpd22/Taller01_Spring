@@ -1,61 +1,35 @@
-package unimagdalena.edu.co.Taller1.domine.services.mapper;
+package unimagdalena.edu.co.Taller1.services.mapper;
 
-import org.springframework.util.CollectionUtils;
-import unimagdalena.edu.co.Taller1.api.dto.BookingDtos;
-import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos;
-import unimagdalena.edu.co.Taller1.domine.entities.Booking;
-import unimagdalena.edu.co.Taller1.domine.entities.Passenger;
+import unimagdalena.edu.co.Taller1.domine.entities.*;
+
+import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class BookingMapper {
-    private static PassengerMapper passengerMapper;
-    private static BokingItemMapper bokingItemMapper;
+    public static BookingResponse toResponse(Booking entity) {
+        var items = entity.getItems() == null? List.<BookingItemResponse>of() : entity.getItems().stream().map(BookingMapper::toItemResponse).toList();
+        var passengerName = entity.getPassenger() == null? null: entity.getPassenger().getFullName();
+        var passengerEmail = entity.getPassenger() == null? null: entity.getPassenger().getEmail();
 
-    public BookingMapper(PassengerMapper passengerMapper, BokingItemMapper bokingItemMapper) {
-        this.passengerMapper = passengerMapper;
-        this.bokingItemMapper = bokingItemMapper;
+        return new BookingResponse(entity.getId(), entity.getCreatedAt(), passengerName, passengerEmail, items);
     }
 
-    public static Booking toEntity(BookingDtos.BookingCreateRequest request, Passenger passenger, List<BookingItem> items) {
-        if (request == null) return null;
-        if (passenger == null) throw  new IllegalArgumentException("Passenger is null");
+    /*----------------------------------------------------------------------------------------------------*/
+    //ToEntity method is service's responsibility
 
-        Booking booking = Booking.builder()
-                .createdAt(request.createdAt())
-                .passenger(passenger)
-                .items(new ArrayList<>())
-                .build();
-
-        if (!CollectionUtils.isEmpty(items)) {
-            items.forEach(booking::addItem);
-        }
-        return booking;
+    public static BookingItemResponse toItemResponse(BookingItem entity) {
+        return new BookingItemResponse(entity.getId(), entity.getCabin().name(), entity.getPrice(), entity.getSegmentOrder(), entity.getBooking().getId(),
+                entity.getFlight().getId(), entity.getFlight().getNumber());
     }
 
-    public static void updateEntity(Booking booking, Passenger passenger){
-        if (booking == null) return;
-
-        if (passenger != null) booking.setPassenger(passenger);
+    public static void itemPatch(BookingItem entity, BookingItemUpdateRequest request) {
+        if (request.cabin() != null) entity.setCabin(Cabin.valueOf(request.cabin().toUpperCase()));
+        if (request.price() != null) entity.setPrice(request.price());
+        if (request.segmentOrder() != null) entity.setSegmentOrder(request.segmentOrder());
     }
 
-    public static BookingDtos.BookingResponse toResponse(Booking booking) {
-        if (booking == null) return null;
-
-        List<BookingItemDtos.BookingItemResponse> itemsResponse =
-                CollectionUtils.isEmpty(booking.getItems())?
-                        new ArrayList<>() :
-                        booking.getItems().stream()
-                                .map(bokingItemMapper::toResponse)
-                                .toList();
-        return new BookingDtos.BookingResponse(
-                booking.getId(),
-                booking.getCreatedAt(),
-                passengerMapper.toResponse(booking.getPassenger()),
-                itemsResponse
-        );
-
-    }
+    public static void addItem(BookingItem item, Booking booking){ booking.addItem(item); }
 }
 

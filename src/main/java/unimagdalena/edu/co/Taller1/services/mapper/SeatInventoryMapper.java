@@ -1,56 +1,25 @@
-package unimagdalena.edu.co.Taller1.domine.services.mapper;
+package unimagdalena.edu.co.Taller1.services.mapper;
 
+import unimagdalena.edu.co.Taller1.api.dto.SeatInventoryDtos.*;
+import unimagdalena.edu.co.Taller1.domine.entities.Cabin;
 import unimagdalena.edu.co.Taller1.domine.entities.SeatInventory;
 
 public class SeatInventoryMapper {
-    private final FlightMapper flightMapper;
-
-    public SeatInventoryMapper(FlightMapper flightMapper) {
-        this.flightMapper = flightMapper;
+    public static SeatInventory toEntity(SeatInventoryCreateRequest request ) {
+        return SeatInventory.builder().cabin(Cabin.valueOf(String.valueOf(request.cabin()))).availableSeats(request.availableSeats())
+                .totalSeats(request.availableSeats()).build();
     }
-
-    public static SeatInventory toEntity(SeatInventoryDtos.SeatInventoryCreateRequest request, Flight flight) {
-        if (request == null) return null;
-
-        if (flight == null) throw new NullPointerException("flight is null");
-
-        return SeatInventory.builder()
-                .cabin(request.cabin())
-                .totalSeats(request.totalSeats())
-                .availableSeats(request.availableSeats())
-                .flight(flight)
-                .build();
-    }
-
-    public static void UpdateEntity(SeatInventory seatInventory, SeatInventoryDtos.SeatInventoryUpdateRequest request, Flight flight){
-        if (seatInventory == null || request == null) return;
-
-        if (request.cabin() != null) {
-            seatInventory.setCabin(request.cabin());
-        }
-        if (request.totalSeats() != null) {
-            seatInventory.setTotalSeats(request.totalSeats());
-        }
-        if (request.availableSeats() != null) {
-            seatInventory.setAvailableSeats(request.availableSeats());
-        }
-        if (flight != null) {
-            seatInventory.setFlight(flight);
-        }
-    }
-
-    public SeatInventoryDtos.SeatInventoryResponse toResponse(SeatInventory seatInventory) {
-        if (seatInventory == null) return null;
-        return new SeatInventoryDtos.SeatInventoryResponse(
-                seatInventory.getId(),
-                seatInventory.getCabin(),
-                seatInventory.getTotalSeats(),
-                seatInventory.getAvailableSeats(),
-                flightMapper.toResponse(seatInventory.getFlight())
+    public static SeatInventoryResponse toResponse(SeatInventory seatInventory) {
+        return new SeatInventoryResponse(
+                seatInventory.getId(), seatInventory.getCabin().name(),
+                seatInventory.getTotalSeats(), seatInventory.getAvailableSeats(), seatInventory.getFlight().getId()
         );
-
     }
 
-
+    public static void patch(SeatInventory entity, SeatInventoryUpdateRequest update) {
+        if (update.cabin() != null) entity.setCabin(Cabin.valueOf(String.valueOf(update.cabin())));
+        if (update.totalSeats() != null) entity.setTotalSeats(update.totalSeats());
+        if (update.availableSeats() != null) entity.setAvailableSeats(update.availableSeats());
+    }
 }
 
