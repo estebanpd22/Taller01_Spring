@@ -11,28 +11,29 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.AirlineMapperStruct;
 
 import java.util.List;
 
 @Service @Transactional @RequiredArgsConstructor
 public class AirlineServiceImpl implements AirlineService {
     private final AirlineRepository airlineRepository;
-
+    private final AirlineMapperStruct airlineMapper;
     @Override
     public AirlineResponse createAirline(AirlineCreateRequest request) {
-        var airline = AirlineMapper.toEntity(request);
-        return AirlineMapper.toResponse(airlineRepository.save(airline));
+        var airline = airlineMapper.toEntity(request);
+        return airlineMapper.toResponse(airlineRepository.save(airline));
     }
 
     @Override @Transactional(readOnly = true)
     public AirlineResponse getAirline(@Nonnull Long id) {
-        return airlineRepository.findById(id).map(AirlineMapper::toResponse)
+        return airlineRepository.findById(id).map(airlineMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
     }
 
     @Override @Transactional(readOnly = true)
     public AirlineResponse getAirlineByCode(@Nonnull String code) {
-        return airlineRepository.findByCodeIgnoreCase(code).map(AirlineMapper::toResponse)
+        return airlineRepository.findByCodeIgnoreCase(code).map(airlineMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airline with code %s not found.".formatted(code)));
     }
 
@@ -40,8 +41,11 @@ public class AirlineServiceImpl implements AirlineService {
     public AirlineResponse updateAirline(@Nonnull Long id, AirlineUpdateRequest request) {
         var airline = airlineRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
-        AirlineMapper.patch(airline, request);
-        return AirlineMapper.toResponse(airlineRepository.save(airline));
+
+        airlineMapper.patch(airline, request);
+        return airlineMapper.toResponse(airlineRepository.save(airline));
+        //static void patch(Airline airline, AirlineUpdateRequest request) {
+        //    }
     }
 
     @Override
@@ -51,11 +55,11 @@ public class AirlineServiceImpl implements AirlineService {
 
     @Override @Transactional(readOnly = true)
     public List<AirlineResponse> listAllAirlines() {
-        return airlineRepository.findAll().stream().map(AirlineMapper::toResponse).toList();
+        return airlineRepository.findAll().stream().map(airlineMapper::toResponse).toList();
     }
 
     @Override
     public Page<AirlineResponse> listAllAirlinesPage(Pageable pageable) {
-        return airlineRepository.findAll(pageable).map(AirlineMapper::toResponse);
+        return airlineRepository.findAll(pageable).map(airlineMapper::toResponse);
     }
 }
