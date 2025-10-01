@@ -1,9 +1,9 @@
-package unimagdalena.edu.co.Taller1.service;
+package unimagdalena.edu.co.Taller1.services;
 
-import co.edu.unimagdalena.despeganding.api.dto.TagDTOs.*;
-import co.edu.unimagdalena.despeganding.domain.entities.Tag;
-import co.edu.unimagdalena.despeganding.domain.repositories.TagRepository;
-import co.edu.unimagdalena.despeganding.services.impl.TagServiceImpl;
+import unimagdalena.edu.co.Taller1.api.dto.TagDtos.*;
+import unimagdalena.edu.co.Taller1.domine.entities.Tag;
+import unimagdalena.edu.co.Taller1.domine.repositories.TagRepository;
+import unimagdalena.edu.co.Taller1.services.impl.TagServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

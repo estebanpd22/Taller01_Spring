@@ -26,7 +26,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapperStruct bookingMapperStruct;
 
     @Override @Transactional
-    public BookingResponse createBooking(BookingCreateRequest request) {
+    public BookingResponse create(BookingCreateRequest request) {
         var passenger = passengerRepository.findById(request.passenger_id()).orElseThrow(
                 () -> new NotFoundException("Passenger %d not found.".formatted(request.passenger_id()))
         );
@@ -35,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse getBooking(@Nonnull Long id) {
+    public BookingResponse getById(@Nonnull Long id) {
         return bookingRepository.findById(id).map(bookingMapperStruct::toResponse).orElseThrow(
                 () -> new NotFoundException("Booking %d not found.".formatted(id))
         );
@@ -62,7 +62,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override @Transactional
-    public BookingResponse updateBooking(@Nonnull Long id, Long passenger_id) {
+    public BookingResponse update(@Nonnull Long id, Long passenger_id) {
         var booking = bookingRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Booking %d not found.".formatted(id))
         );
@@ -76,7 +76,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override @Transactional
-    public void deleteBooking(@Nonnull Long id) {
+    public void delete(@Nonnull Long id) {
         bookingRepository.deleteById(id);
     }
 }

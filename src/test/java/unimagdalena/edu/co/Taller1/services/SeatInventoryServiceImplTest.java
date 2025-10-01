@@ -1,12 +1,10 @@
-package unimagdalena.edu.co.Taller1.service;
+package unimagdalena.edu.co.Taller1.services;
 
-import co.edu.unimagdalena.despeganding.api.dto.SeatInventoryDTOs.*;
-import co.edu.unimagdalena.despeganding.domain.entities.Cabin;
-import co.edu.unimagdalena.despeganding.domain.entities.Flight;
-import co.edu.unimagdalena.despeganding.domain.entities.SeatInventory;
-import co.edu.unimagdalena.despeganding.domain.repositories.FlightRepository;
-import co.edu.unimagdalena.despeganding.domain.repositories.SeatInventoryRepository;
-import co.edu.unimagdalena.despeganding.services.impl.SeatInventoryServiceImpl;
+import unimagdalena.edu.co.Taller1.api.dto.SeatInventoryDtos.*;
+import unimagdalena.edu.co.Taller1.domine.entities.*;
+import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
+import unimagdalena.edu.co.Taller1.domine.repositories.SeatInventoryRepository;
+import unimagdalena.edu.co.Taller1.services.impl.SeatInventoryServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

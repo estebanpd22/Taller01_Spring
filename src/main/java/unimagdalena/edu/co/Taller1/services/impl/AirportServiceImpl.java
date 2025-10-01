@@ -21,30 +21,30 @@ public class AirportServiceImpl implements AirportService {
     private final AirportRepository airportRepository;
     private final AirportMapperStruct airportMapperStruct;
     @Override @Transactional
-    public AirportResponse createAirport(AirportCreateRequest request) {
+    public AirportResponse create(AirportCreateRequest request) {
         var airport = airportMapperStruct.toEntity(request);
         return airportMapperStruct.toResponse(airportRepository.save(airport));
     }
 
     @Override
-    public AirportResponse getAirport(@Nonnull Long id) {
+    public AirportResponse getById(@Nonnull Long id) {
         return airportRepository.findById(id).map(airportMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airport %d not found.".formatted(id)));
     }
 
     @Override
-    public AirportResponse getAirportByCode(@Nonnull String code) {
+    public AirportResponse getByCode(@Nonnull String code) {
         return airportRepository.findByCodeIgnoreCase(code).map(airportMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airport with code %s not found.".formatted(code)));
     }
 
     @Override
-    public List<AirportResponse> getCityAirports(@Nonnull String city) {
+    public List<AirportResponse> getCityList(@Nonnull String city) {
         return airportRepository.findByCity(city).stream().map(airportMapperStruct::toResponse).toList();
     }
 
     @Override @Transactional
-    public AirportResponse updateAirport(@Nonnull Long id, AirportUpdateRequest request) {
+    public AirportResponse update(@Nonnull Long id, AirportUpdateRequest request) {
         var airport = airportRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Airport %d not found.".formatted(id)));
         airportMapperStruct.patch(airport, request);
@@ -52,12 +52,12 @@ public class AirportServiceImpl implements AirportService {
     }
 
     @Override @Transactional
-    public void deleteAirport(@Nonnull Long id) {
+    public void delete(@Nonnull Long id) {
         airportRepository.deleteById(id);
     }
 
     @Override
-    public Page<AirportResponse> listAllAirports(Pageable pageable) {
+    public Page<AirportResponse> airportList(Pageable pageable) {
         return airportRepository.findAll(pageable).map(airportMapperStruct::toResponse);
     }
 }

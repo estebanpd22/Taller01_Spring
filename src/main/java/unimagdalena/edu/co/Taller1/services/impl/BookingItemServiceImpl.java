@@ -35,7 +35,7 @@ public class BookingItemServiceImpl implements BookingItemService {
 
         var bookingItem = BookingItem.builder().cabin(Cabin.valueOf(request.cabin())).price(request.price()).segmentOrder(request.segmentOrder())
                 .flight(flight).build();
-        bookingMapperStruct.addItem(bookingItem, booking);
+        bookingMapperStruct.updateItemFromRequest(bookingItem, booking);
 
         return bookingMapperStruct.toItemResponse(bookingItem);
     }

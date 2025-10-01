@@ -22,21 +22,10 @@ public interface BookingMapperStruct {
     List<BookingItemResponse> toItemResponseList(List<BookingItem> entities);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    default void itemPatch(BookingItem entity, BookingItemUpdateRequest request) {
-        if (request.cabin() != null) {
-            entity.setCabin(Cabin.valueOf(request.cabin().toUpperCase()));
-        }
-        if (request.price() != null) {
-            entity.setPrice(request.price());
-        }
-        if (request.segmentOrder() != null) {
-            entity.setSegmentOrder(request.segmentOrder());
-        }
+    void updateItemFromRequest(BookingItemUpdateRequest request, @MappingTarget BookingItem entity);
+
+    default Cabin mapCabin(String cabin) {
+        return cabin != null ? Cabin.valueOf(cabin.toUpperCase()) : null;
     }
 
-    default void addItem(BookingItem item, Booking booking) {
-        if (booking != null && item != null) {
-            booking.addItem(item);
-        }
-    }
 }

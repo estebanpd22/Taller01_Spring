@@ -1,16 +1,10 @@
-package co.edu.unimagdalena.despeganding.services;
+package unimagdalena.edu.co.Taller1.services;
 
-import unimagdalena.edu.co.Taller1.api.dto.FlightDTOs.*;
-import co.edu.unimagdalena.despeganding.api.dto.TagDTOs.TagResponse;
-import co.edu.unimagdalena.despeganding.domain.entities.Airline;
-import co.edu.unimagdalena.despeganding.domain.entities.Airport;
-import co.edu.unimagdalena.despeganding.domain.entities.Flight;
-import co.edu.unimagdalena.despeganding.domain.entities.Tag;
-import co.edu.unimagdalena.despeganding.domain.repositories.AirlineRepository;
-import co.edu.unimagdalena.despeganding.domain.repositories.AirportRepository;
-import co.edu.unimagdalena.despeganding.domain.repositories.FlightRepository;
-import co.edu.unimagdalena.despeganding.domain.repositories.TagRepository;
-import co.edu.unimagdalena.despeganding.services.impl.FlightServiceImpl;
+import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
+import unimagdalena.edu.co.Taller1.api.dto.TagDtos.TagResponse;
+import unimagdalena.edu.co.Taller1.domine.entities.*;
+import unimagdalena.edu.co.Taller1.domine.repositories.*;
+import unimagdalena.edu.co.Taller1.services.impl.FlightServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

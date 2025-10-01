@@ -7,11 +7,11 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface AirlineService {
-    AirlineResponse createAirline(AirlineCreateRequest request);
-    AirlineResponse getAirline(Long id);
-    AirlineResponse getAirlineByCode(String code);
-    AirlineResponse updateAirline(Long id, AirlineUpdateRequest request);
-    void deleteAirline(Long id);
-    List<AirlineResponse> listAllAirlines();
-    Page<AirlineResponse> listAllAirlinesPage(Pageable pageable);
+    AirlineResponse create(AirlineCreateRequest request);
+    AirlineResponse getById(Long id);
+    AirlineResponse getByCode(String code);
+    AirlineResponse update(Long id, AirlineUpdateRequest request);
+    void delete(Long id);
+    List<AirlineResponse> airlineList();
+    Page<AirlineResponse> airlinePageList(Pageable pageable);
 }

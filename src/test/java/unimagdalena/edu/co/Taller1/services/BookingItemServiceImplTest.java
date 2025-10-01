@@ -1,4 +1,4 @@
-package unimagdalena.edu.co.Taller1.service;
+package unimagdalena.edu.co.Taller1.services;
 
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
