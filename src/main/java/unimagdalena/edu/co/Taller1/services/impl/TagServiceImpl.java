@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import unimagdalena.edu.co.Taller1.domine.repositories.TagRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.TagService;
-import unimagdalena.edu.co.Taller1.services.mapper.TagMapper;
 import unimagdalena.edu.co.Taller1.api.dto.TagDtos.*;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.TagMapperStruct;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,16 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
+    private final TagMapperStruct tagMapperStruct;
 
     @Override
     public TagResponse createTag(TagCreateRequest request) {
-        var tag = TagMapper.toEntity(request);
-        return TagMapper.toResponse(tagRepository.save(tag));
+        var tag = tagMapperStruct.toEntity(request);
+        return tagMapperStruct.toResponse(tagRepository.save(tag));
     }
 
     @Override
     public TagResponse getTag(Long id) {
-        return tagRepository.findById(id).map(TagMapper::toResponse).orElseThrow(() -> new NotFoundException("Tag %d not found".formatted(id)));
+        return tagRepository.findById(id).map(tagMapperStruct::toResponse).orElseThrow(() -> new NotFoundException("Tag %d not found".formatted(id)));
     }
 
     @Override
@@ -35,11 +36,11 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagResponse> listAllTags() {
-        return tagRepository.findAll().stream().map(TagMapper::toResponse).toList();
+        return tagRepository.findAll().stream().map(tagMapperStruct::toResponse).toList();
     }
 
     @Override
     public List<TagResponse> listTagsByNameIn(Collection<String> names) {
-        return tagRepository.findByNameIn(names).stream().map(TagMapper::toResponse).toList();
+        return tagRepository.findByNameIn(names).stream().map(tagMapperStruct::toResponse).toList();
     }
 }
