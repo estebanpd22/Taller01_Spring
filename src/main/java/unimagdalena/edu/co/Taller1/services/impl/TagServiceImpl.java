@@ -19,18 +19,18 @@ public class TagServiceImpl implements TagService {
     private final TagMapperStruct tagMapperStruct;
 
     @Override
-    public TagResponse createTag(TagCreateRequest request) {
+    public TagResponse create(TagCreateRequest request) {
         var tag = tagMapperStruct.toEntity(request);
         return tagMapperStruct.toResponse(tagRepository.save(tag));
     }
 
     @Override
-    public TagResponse getTag(Long id) {
+    public TagResponse getById(Long id) {
         return tagRepository.findById(id).map(tagMapperStruct::toResponse).orElseThrow(() -> new NotFoundException("Tag %d not found".formatted(id)));
     }
 
     @Override
-    public void deleteTag(@Nonnull Long id) {
+    public void delete(@Nonnull Long id) {
         tagRepository.deleteById(id);
     }
 

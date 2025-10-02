@@ -3,6 +3,7 @@ package unimagdalena.edu.co.Taller1.services;
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
 import unimagdalena.edu.co.Taller1.domine.repositories.BookingRepository;
+import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
 import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
 import unimagdalena.edu.co.Taller1.services.impl.BookingServiceImpl;
 import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingMapperStruct;
@@ -31,8 +32,13 @@ public class BookingServiceImplTest {
     @Mock
     PassengerRepository passengerRepository;
 
+    @Mock
+    FlightRepository flightRepository;
+
     @InjectMocks
     BookingServiceImpl bookingService;
+
+
 
     @Test
     void shouldCreateBookingAndMapToResponse(){
@@ -103,34 +109,58 @@ public class BookingServiceImplTest {
         assertThat(response).extracting(BookingResponse::passenger_email)
                 .allMatch(email -> email.equals("elcomediante07@example.com"));
     }
-
     @Test
-    void shouldGetBookingWithAllDetails(){
-        final BookingMapperStruct bookingMapperStruct;
-        var now = OffsetDateTime.now();
-        var passenger = Optional.of(Passenger.builder().id(1L).fullName("Cristiano Penaldo")
-                .email("elcomediante07@example.com").build());
-        var booking = Optional.of(Booking.builder().id(101L).createdAt(now.minusDays(1))
-                .passenger(passenger.get()).build());
-        var origin = Optional.of(Airport.builder().id(1001L).code("XD").name("Origin").build());
-        var destination = Optional.of(Airport.builder().id(1002L).code("DX").name("Final Destination").build());
-        var flight = Flight.builder().id(11L).number("XD0001").origin(origin.get()).destination(destination.get())
-                .departureTime(now).arrivalTime(now.plusHours(5)).build();
+    void shouldFetchBookingWithItemsAndPassenger() {
+        // Arrange - crear Passenger
+        Passenger passenger = Passenger.builder()
+                .fullName("Carlos Sehuanes")
+                .email("carlos@example.com")
+                .build();
+        passenger = passengerRepository.save(passenger);
 
-        bookingMapperStruct.addItem(BookingItem.builder().id(10001L).cabin(Cabin.PREMIUM));
-        bookingMapperStruct.addItem(BookingItem.builder().id(10001L).cabin(Cabin.PREMIUM)
-                .price(new BigDecimal("10000000")).segmentOrder(1).flight(flight).build(), booking.get());
-        bookingMapperStruct.addItem(BookingItem.builder().id(10002L).cabin(Cabin.BUSINESS)
-                .price(new BigDecimal("7500000")).segmentOrder(2).flight(flight).build(), booking.get());
-        when(bookingRepository.searchWithAllDetails(101L)).thenReturn(booking);
+        Airline airline = Airline.builder().name("Avianca").code("AV").build();
+        Airport origin = Airport.builder().code("SMR").name("Santa Marta").city("Santa Marta").build();
+        Airport destination = Airport.builder().code("BOG").name("El Dorado").city("Bogotá").build();
 
-        var response = bookingService.getBookingWithAllDetails(booking.get().getId());
-        var items = response.items();
+        Flight flight = Flight.builder()
+                .number("AV123")
+                .departureTime(OffsetDateTime.now())
+                .arrivalTime(OffsetDateTime.now().plusHours(1))
+                .airline(airline)
+                .origin(origin)
+                .destination(destination)
+                .build();
+        flight = flightRepository.save(flight);
 
-        assertThat(response.id()).isEqualTo(101L);
-        assertThat(response.passenger_name()).isEqualTo("Cristiano Penaldo");
-        assertThat(response.passenger_email()).isEqualTo("elcomediante07@example.com");
-        assertThat(items).extracting(BookingItemResponse::booking_id).allMatch(id -> id.equals(101L));
-        assertThat(items).extracting(BookingItemResponse::flight_id).allMatch(id -> id.equals(11L));
+        Booking booking = Booking.builder()
+                .createdAt(OffsetDateTime.now())
+                .passenger(passenger)
+                .build();
+
+        BookingItem item = BookingItem.builder()
+                .cabin(Cabin.ECONOMY)
+                .price(BigDecimal.valueOf(150.00))
+                .segmentOrder(1)
+                .flight(flight)
+                .booking(booking)
+                .build();
+
+        booking.addItem(item);
+
+        booking = bookingRepository.save(booking);
+
+        Optional<Booking> resultOpt = bookingRepository.fetchGraphById(booking.getId());
+
+        assertThat(resultOpt).isPresent();
+        Booking result = resultOpt.get();
+
+        assertThat(result.getPassenger()).isNotNull();
+        assertThat(result.getPassenger().getEmail()).isEqualTo("carlos@example.com");
+
+        assertThat(result.getItems()).hasSize(1);
+        BookingItem loadedItem = result.getItems().getFirst();
+
+        assertThat(loadedItem.getFlight()).isNotNull();
+        assertThat(loadedItem.getFlight().getNumber()).isEqualTo("AV123");
     }
 }

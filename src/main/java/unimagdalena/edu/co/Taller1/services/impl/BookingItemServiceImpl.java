@@ -34,8 +34,8 @@ public class BookingItemServiceImpl implements BookingItemService {
         );
 
         var bookingItem = BookingItem.builder().cabin(Cabin.valueOf(request.cabin())).price(request.price()).segmentOrder(request.segmentOrder())
-                .flight(flight).build();
-        bookingMapperStruct.updateItemFromRequest(bookingItem, booking);
+                .flight(flight).booking(booking).build();
+        booking.addItem(bookingItem);
 
         return bookingMapperStruct.toItemResponse(bookingItem);
     }
@@ -52,7 +52,7 @@ public class BookingItemServiceImpl implements BookingItemService {
         var bookingItem = bookingItemRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Booking Item %d not found".formatted(id))
         );
-        bookingMapperStruct.itemPatch(bookingItem, request);
+        bookingMapperStruct.itemPatch(request, bookingItem);
 
         var flight = flightRepository.findById(flight_id).orElseThrow(
                 () -> new NotFoundException("Flight %d not found".formatted(flight_id))

@@ -31,7 +31,7 @@ public class FlightServiceImpl implements FlightService {
     private final FlightMapperStruct flightMapperStruct;
 
     @Override
-    public FlightResponse createFlight(FlightCreateRequest request, @Nonnull Long airline_id, @Nonnull Long origin_airport_id, @Nonnull Long destination_airport_id) {
+    public FlightResponse create(FlightCreateRequest request, @Nonnull Long airline_id, @Nonnull Long origin_airport_id, @Nonnull Long destination_airport_id) {
         var airline = airlineRepository.findById(airline_id).orElseThrow(
                 () -> new NotFoundException("Airline %d not found.".formatted(airline_id))
         );
@@ -51,14 +51,14 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override @Transactional(readOnly = true)
-    public FlightResponse getFlight(@Nonnull Long id) {
+    public FlightResponse getById(@Nonnull Long id) {
         return flightRepository.findById(id).map(flightMapperStruct::toResponse).orElseThrow(
                 () -> new NotFoundException("Flight %d not found.".formatted(id))
         );
     }
 
     @Override //A flight just can update his destination airport, I looked into it
-    public FlightResponse updateFlight(FlightUpdateRequest request, @Nonnull Long id) {
+    public FlightResponse update(FlightUpdateRequest request, @Nonnull Long id) {
         var flight = flightRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Flight %d not found.".formatted(id))
         );
@@ -73,7 +73,7 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    public void deleteFlight(@Nonnull Long id) {
+    public void delete(@Nonnull Long id) {
         flightRepository.deleteById(id);
     }
 

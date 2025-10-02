@@ -19,19 +19,19 @@ public class PassengerServiceImpl implements PassengerService {
     private final PassengerMapperStruct passengerMapperStruct;
 
     @Override @Transactional
-    public PassengerResponse createPassenger(PassengerCreateRequest request) {
+    public PassengerResponse create(PassengerCreateRequest request) {
         var passenger = passengerMapperStruct.toEntity(request);
         return passengerMapperStruct.toResponse(passengerRepository.save(passenger));
     }
 
     @Override
-    public PassengerResponse getPassenger(@Nonnull Long id) {
+    public PassengerResponse getById(@Nonnull Long id) {
         return passengerRepository.findById(id).map(passengerMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Passenger %d not found.".formatted(id)));
     }
 
     @Override
-    public PassengerResponse getPassengerByEmail(@Nonnull String email) {
+    public PassengerResponse getByEmail(@Nonnull String email) {
         return passengerRepository.findByEmailIgnoreCase(email).map(passengerMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Passenger with email %s not found.".formatted(email)));
     }
@@ -43,7 +43,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override @Transactional
-    public PassengerResponse updatePassenger(@Nonnull Long id, PassengerUpdateRequest request) {
+    public PassengerResponse update(@Nonnull Long id, PassengerUpdateRequest request) {
         var passenger = passengerRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Passenger %d not found.".formatted(id)));
         passengerMapperStruct.patch(passenger, request);
@@ -51,7 +51,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override @Transactional
-    public void deletePassenger(@Nonnull Long id) {
+    public void delete(@Nonnull Long id) {
         passengerRepository.deleteById(id);
     }
 

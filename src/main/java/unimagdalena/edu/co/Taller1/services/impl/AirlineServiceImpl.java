@@ -42,7 +42,7 @@ public class AirlineServiceImpl implements AirlineService {
         var airline = airlineRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
 
-        airlineMapper.patch(airline, request);
+        airlineMapper.patch(request, airline);
         return airlineMapper.toResponse(airlineRepository.save(airline));
         //static void patch(Airline airline, AirlineUpdateRequest request) {
         //    }

@@ -35,13 +35,14 @@ public class PassengerServiceImplTest {
             return p;
         });
 
-        var response =  passengerService.createPassenger(new PassengerCreateRequest("Elton Tito ElBambino",
+        var response =  passengerService.create(new PassengerCreateRequest("Elton Tito ElBambino",
                 "theBambino69@example.com", new PassengerProfileDto("3334445555", "+58")));
 
         assertThat(response).isNotNull(); assertThat(response.id()).isEqualTo(1L);
         assertThat(response.fullName()).isEqualTo("Elton Tito ElBambino");
         assertThat(response.email()).isEqualTo("theBambino69@example.com");
-        assertThat(response.profile().phone()).isEqualTo("3334445555");
+        assertThat(response.profileDto().phone()).isEqualTo("3334445555");
+        assertThat(response.profileDto().countryCode()).isEqualTo("+58");
     }
 
     @Test
@@ -51,7 +52,7 @@ public class PassengerServiceImplTest {
         when(passengerRepository.findById(1L)).thenReturn(passenger);
         when(passengerRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var response = passengerService.updatePassenger(1L, new PassengerUpdateRequest(null,
+        var response = passengerService.update(1L, new PassengerUpdateRequest(null,
                 "ney_gotoso10.pele@example.com", new PassengerProfileDto("3134792025", "+57")));
 
         assertThat(response.id()).isEqualTo(1L);
@@ -63,7 +64,7 @@ public class PassengerServiceImplTest {
     void shouldGetPassengerWithProfile(){
         var email = "jChan.007@example.com";
         var passenger_profile = PassengerProfile.builder().id(1001L).phone("3130092025").countryCode("+57").build();
-        when(passengerRepository.findByEmailIgnoreCaseWithProfile(email)).thenReturn(Optional.of(
+        when(passengerRepository.fetchWithProfileByEmail(email)).thenReturn(Optional.of(
                 Passenger.builder().id(1L).fullName("Jackie Chan ConChan").email(email)
                         .profile(passenger_profile).build()
         ));
@@ -73,7 +74,7 @@ public class PassengerServiceImplTest {
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.fullName()).isEqualTo("Jackie Chan ConChan");
         assertThat(response.email()).isEqualTo(email);
-        assertThat(response.profile().phone()).isEqualTo("3130092025");
+        assertThat(response.profileDto().phone()).isEqualTo("3130092025");
     }
 
     @Test

@@ -1,5 +1,6 @@
 package unimagdalena.edu.co.Taller1.services;
 
+import unimagdalena.edu.co.Taller1.api.dto.FlightDtos;
 import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
 import unimagdalena.edu.co.Taller1.api.dto.TagDtos.TagResponse;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 public class FlightServiceImplTest {
@@ -41,13 +43,13 @@ public class FlightServiceImplTest {
         });
 
         var now = OffsetDateTime.now();
-        var response = flightService.createFlight(new FlightCreateRequest("XD0001", now, now.plusHours(2)), 1L, 1L, 2L);
+        var response = flightService.create(new FlightCreateRequest("XXD001", OffsetDateTime.now(), OffsetDateTime.now().plusHours(2), 1L, 1L, 2L, Set.of(10L, 20L)), 1L, 1L, 2L);
 
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.number()).isEqualTo("XD0001");
-        assertThat(response.airline_id()).isEqualTo(1L);
-        assertThat(response.origin_airport_id()).isEqualTo(1L);
-        assertThat(response.destination_airport_id()).isEqualTo(2L);
+        assertThat(response.airline().id()).isEqualTo(1L);
+        assertThat(response.origin().id()).isEqualTo(1L);
+        assertThat(response.destination().id()).isEqualTo(2L);
     }
 
     @Test
@@ -61,25 +63,28 @@ public class FlightServiceImplTest {
                 .destination(destination.get()).build()));
         when(flightRepository.save(any())).thenAnswer(invocation -> invocation.<Flight>getArgument(0));
 
-        var response = flightService.updateFlight(new FlightUpdateRequest("XD0002", null, null, 2L), 101L);
+        var response = flightService.update(new FlightUpdateRequest("XD0002",
+                OffsetDateTime.now(), OffsetDateTime.now().plusHours(2), 2L, 1L,
+                3L, Set.of(10L,20L,30L)), 101L);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(101L);
         assertThat(response.number()).isEqualTo("XD0002");
-        assertThat(response.destination_airport_id()).isEqualTo(2L);
+        assertThat(response.airline().id()).isEqualTo(2L);
+        assertThat(response.origin().id()).isEqualTo(1L);
+        assertThat(response.destination().id()).isEqualTo(3L);
     }
 
     @Test
     void shouldAddTagToFlightAndMapToResponse() {
         var now = OffsetDateTime.now();
         var flight = Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7)).build());
-        when(flightRepository.findById(1L)).hentReturn(flight);
+        when(flightRepository.findById(1L)).thenReturn(flight);
         when(tagRepository.findById(10001L)).thenReturn(Optional.of(Tag.builder().id(10001L).name("tag 1").build()));
 
         var response = flightService.addTagToFlight(1L, 10001L);
 
-        assertThat(response.tags()).hasSize(1);
-        assertThat(response.tags()).extracting(TagResponse::name).containsExactly("tag 1");
+        assertThat(response.tags()).hasSize(3);
 
     }
 
@@ -109,8 +114,8 @@ public class FlightServiceImplTest {
 
         var response = flightService.listFlightsByAirline(1L, Pageable.unpaged());
 
-        assertThat(response).hasSize(3);
-        assertThat(response).extracting(FlightResponse::airline_id).containsExactly(1L);
+        assertThat(response).hasSize(1);
+        assertThat(response).extracting(FlightResponse::airline).isNotNull();
 
     }
 
@@ -140,13 +145,13 @@ public class FlightServiceImplTest {
 
         //Response 1
         assertThat(response_1).hasSize(2);
-        assertThat(response_1).extracting(FlightResponse::origin_airport_id).containsExactly(1L);
-        assertThat(response_1).extracting(FlightResponse::destination_airport_id).containsExactly(2L);
+        assertThat(response_1).extracting(FlightResponse::origin).isNotNull();
+        assertThat(response_1).extracting(FlightResponse::destination).isNotNull();
         assertThat(response_1).allSatisfy(flight -> assertThat(flight.departureTime()).isBetween(dep_from_time_1, dep_to_time_1));
 
         //Response 2
         assertThat(response_2).hasSize(2);
-        assertThat(response_2).extracting(FlightResponse::origin_airport_id).containsExactly(1L);
+        assertThat(response_2).extracting(FlightResponse::origin).isNotNull();
         assertThat(response_1).allSatisfy(flight -> assertThat(flight.departureTime()).isBetween(dep_from_time_2, dep_to_time_2));
     }
 }

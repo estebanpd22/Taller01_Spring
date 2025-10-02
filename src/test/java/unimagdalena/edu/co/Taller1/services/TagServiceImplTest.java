@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +30,7 @@ public class TagServiceImplTest {
             return tag;
         });
 
-        var response = tagService.createTag(new TagCreateRequest("Tag1"));
+        var response = tagService.create(new TagCreateRequest("Tag1"));
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(1L);
@@ -48,8 +49,11 @@ public class TagServiceImplTest {
         var response = tagService.listAllTags();
 
         assertThat(response.size()).isEqualTo(4);
-        assertThat(response).extracting(TagResponse::name).containsExactly("pruebi-tag", "tag-xd", "tag-zzz", "miTag");
-    }
+        assertThat(response.getFirst()).isEqualTo(Tag.builder().id(1L).name("pruebi-tag"));
+        assertThat(response.get(1)).isEqualTo(Tag.builder().id(2L).name("tag-xd"));
+        assertThat(response.get(2)).isEqualTo(Tag.builder().id(3L).name("tag-zzz"));
+        assertThat(response.getLast()).isEqualTo(Tag.builder().id(4L).name("miTag"));
+        }
 
     @Test
     void shouldListTagsByNameIn(){
@@ -62,6 +66,7 @@ public class TagServiceImplTest {
         var response = tagService.listTagsByNameIn(tagNames);
 
         assertThat(response.size()).isEqualTo(2);
-        assertThat(response).extracting(TagResponse::name).containsExactly("pruebi-tag", "miTag");
+        assertThat(response.getFirst()).isEqualTo(Tag.builder().id(1L).name("pruebi-tag"));
+        assertThat(response.getLast()).isEqualTo(Tag.builder().id(4L).name("miTag"));
     }
 }

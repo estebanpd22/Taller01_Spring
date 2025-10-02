@@ -10,6 +10,7 @@ import unimagdalena.edu.co.Taller1.domine.entities.Booking;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking,Long> {
     //Pagina las reservas de un pasajero (por email, ignorando case) ordenadas desc
@@ -21,7 +22,7 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
     //Trae una reserva por id precargando items, items.flight y passenger
     @EntityGraph(attributePaths = {"items", "items.flight", "passenger"})
     @Query("SELECT b FROM Booking b WHERE b.id = :id")
-    Booking fetchGraphById(@Param("id") Long id);
+    Optional<Booking> fetchGraphById(@Param("id") Long id);
 
     List<Booking> findByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end);
 }
