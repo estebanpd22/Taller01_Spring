@@ -9,16 +9,16 @@ import unimagdalena.edu.co.Taller1.domine.entities.Cabin;
 @Mapper(componentModel = "spring")
 public interface SeatInventoryMapperStruct {
 
+    @Mapping(source = "flightId", target = "flight.id")
     SeatInventory toEntity(SeatInventoryCreateRequest request);
 
     @Mapping(source = "cabin", target = "cabin")
     @Mapping(source = "flight.id", target = "flight_id")
     SeatInventoryResponse toResponse(SeatInventory entity);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateSeatInventoryFromDto(SeatInventoryUpdateRequest request, @MappingTarget SeatInventory entity);
 
-    void patch(SeatInventory entity, SeatInventoryDtos.SeatInventoryUpdateRequest request);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void patch(SeatInventory entity, @MappingTarget SeatInventoryDtos.SeatInventoryUpdateRequest request);
 
     default String map(Cabin cabin) {
         return cabin != null ? cabin.name() : null;

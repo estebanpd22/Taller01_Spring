@@ -1,4 +1,4 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;

@@ -20,11 +20,13 @@ public interface PassengerMapperStruct {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "profileDto.phone", target = "profile.phone", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "profileDto.countryCode", target = "profile.countryCode", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updatePassengerFromDto(PassengerUpdateRequest request, @MappingTarget Passenger passenger);
+    void patch(PassengerUpdateRequest request, @MappingTarget Passenger passenger);
 
+    @Mapping(target = "targetprofileDto.phone", source = "phone")
+    @Mapping(target = "profileDto.countryCode", source = "countryCode")
     PassengerProfileDto toDto(PassengerProfile profile);
 
+    @Mapping(source = "profileDto.phone", target = "phone")
+    @Mapping(source = "profileDto.countryCode", target = "countryCode")
     PassengerProfile toEntity(PassengerProfileDto dto);
-
-    void patch(Passenger entity, PassengerDtos.PassengerUpdateRequest request);
 }

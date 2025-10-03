@@ -58,7 +58,7 @@ public class AirlineServiceImpl implements AirlineService {
         return airlineRepository.findAll().stream().map(airlineMapper::toResponse).toList();
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public Page<AirlineResponse> airlinePageList(Pageable pageable) {
         return airlineRepository.findAll(pageable).map(airlineMapper::toResponse);
     }

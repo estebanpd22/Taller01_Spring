@@ -20,30 +20,30 @@ import java.util.List;
 public class AirportServiceImpl implements AirportService {
     private final AirportRepository airportRepository;
     private final AirportMapperStruct airportMapperStruct;
-    @Override @Transactional
+    @Override
     public AirportResponse create(AirportCreateRequest request) {
         var airport = airportMapperStruct.toEntity(request);
         return airportMapperStruct.toResponse(airportRepository.save(airport));
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public AirportResponse getById(@Nonnull Long id) {
         return airportRepository.findById(id).map(airportMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airport %d not found.".formatted(id)));
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public AirportResponse getByCode(@Nonnull String code) {
         return airportRepository.findByCodeIgnoreCase(code).map(airportMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airport with code %s not found.".formatted(code)));
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public List<AirportResponse> getCityList(@Nonnull String city) {
         return airportRepository.findByCity(city).stream().map(airportMapperStruct::toResponse).toList();
     }
 
-    @Override @Transactional
+    @Override
     public AirportResponse update(@Nonnull Long id, AirportUpdateRequest request) {
         var airport = airportRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Airport %d not found.".formatted(id)));
@@ -51,12 +51,12 @@ public class AirportServiceImpl implements AirportService {
         return airportMapperStruct.toResponse(airportRepository.save(airport));
     }
 
-    @Override @Transactional
+    @Override
     public void delete(@Nonnull Long id) {
         airportRepository.deleteById(id);
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public Page<AirportResponse> airportList(Pageable pageable) {
         return airportRepository.findAll(pageable).map(airportMapperStruct::toResponse);
     }

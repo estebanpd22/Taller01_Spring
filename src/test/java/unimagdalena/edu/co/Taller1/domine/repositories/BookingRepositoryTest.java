@@ -1,4 +1,4 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -114,8 +114,8 @@ public class BookingRepositoryTest extends AbstractRepositoryTI {
 
         // THEN
         assertThat(found).isNotNull();
-        assertThat(found.getPassenger()).isNotNull();
-        assertThat(found.getItems()).isNotEmpty();
-        assertThat(found.getItems().getFirst().getFlight()).isNotNull();
+        assertThat(found.get().getPassenger()).isNotNull();
+        assertThat(found.get().getItems()).isNotEmpty();
+        assertThat(found.get().getItems().getFirst().getFlight()).isNotNull();
     }
 }

@@ -1,4 +1,4 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

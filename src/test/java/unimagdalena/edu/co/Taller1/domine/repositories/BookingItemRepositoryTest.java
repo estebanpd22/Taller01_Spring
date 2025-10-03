@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BookingItemRepositoryTest extends AbstractRepositoryTI {
 
     @Autowired
-    private BookingRepository bookingRepository;
+    BookingRepository bookingRepository;
 
     @Autowired
     private PassengerRepository passengerRepository;

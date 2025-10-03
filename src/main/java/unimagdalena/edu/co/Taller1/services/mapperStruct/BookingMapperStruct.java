@@ -9,13 +9,13 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface BookingMapperStruct {
 
-    @Mapping(source = "passenger.fullName", target = "passengerName")
-    @Mapping(source = "passenger.email", target = "passengerEmail")
+    @Mapping(source = "passenger.fullName", target = "passenger_name")
+    @Mapping(source = "passenger.email", target = "passenger_email")
     BookingResponse toResponse(Booking entity);
 
-    @Mapping(source = "booking.id", target = "bookingId")
-    @Mapping(source = "flight.id", target = "flightId")
-    @Mapping(source = "flight.number", target = "flightNumber")
+    @Mapping(source = "booking.id", target = "booking_id")
+    @Mapping(source = "flight.id", target = "flight_id")
+    @Mapping(source = "flight.number", target = "flight_number")
     BookingItemResponse toItemResponse(BookingItem entity);
 
     List<BookingItemResponse> toItemResponseList(List<BookingItem> entities);
