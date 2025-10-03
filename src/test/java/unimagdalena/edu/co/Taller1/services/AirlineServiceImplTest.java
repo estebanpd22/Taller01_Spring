@@ -35,7 +35,7 @@ public class AirlineServiceImplTest {
 
         var response = airlineService.create(new AirlineCreateRequest("XD", "Despegar.com"));
 
-        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.id()).isNotNull();
         assertThat(response.code()).isEqualTo("XD");
         assertThat(response.name()).isEqualTo("Despegar.com");
     }

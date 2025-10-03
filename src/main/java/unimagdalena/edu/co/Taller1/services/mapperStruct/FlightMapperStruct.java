@@ -13,16 +13,8 @@ import java.util.Set;
 @Mapper(componentModel = "spring", uses = {AirlineMapperStruct.class, AirportMapperStruct.class, TagMapper.class})
 public interface FlightMapperStruct {
 
-    @Mapping(source = "airlineId", target = "airline")
-    @Mapping(source = "originId", target = "origin")
-    @Mapping(source = "destinationId", target = "destination")
-    @Mapping(source = "tagIds", target = "tags")
     Flight toEntity(FlightCreateRequest request);
 
-    @Mapping(source = "airline", target = "airlineId")
-    @Mapping(source = "origin", target = "originId")
-    @Mapping(source = "destination", target = "destinationId")
-    @Mapping(source = "tags", target = "tagIds")
     FlightResponse toResponse(Flight flight);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

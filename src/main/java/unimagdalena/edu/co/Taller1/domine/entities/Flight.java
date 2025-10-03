@@ -50,4 +50,5 @@ public class Flight {
         this.tags.add(tag);
         tag.getFlights().add(this);
     }
+
 }
