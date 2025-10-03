@@ -7,7 +7,7 @@ import unimagdalena.edu.co.Taller1.domine.entities.SeatInventory;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-10-03T11:21:29-0500",
+    date = "2025-10-03T14:00:05-0500",
     comments = "version: 1.6.0, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
@@ -19,9 +19,13 @@ public class SeatInventoryMapperStructImpl implements SeatInventoryMapperStruct 
             return null;
         }
 
-        SeatInventory seatInventory = new SeatInventory();
+        SeatInventory.SeatInventoryBuilder seatInventory = SeatInventory.builder();
 
-        return seatInventory;
+        seatInventory.cabin( request.cabin() );
+        seatInventory.totalSeats( request.totalSeats() );
+        seatInventory.availableSeats( request.availableSeats() );
+
+        return seatInventory.build();
     }
 
     @Override
@@ -34,6 +38,12 @@ public class SeatInventoryMapperStructImpl implements SeatInventoryMapperStruct 
         String cabin = null;
         Integer totalSeats = null;
         Integer availableSeats = null;
+
+        id = entity.getId();
+        cabin = map( entity.getCabin() );
+        totalSeats = entity.getTotalSeats();
+        availableSeats = entity.getAvailableSeats();
+
         Long flight_id = null;
 
         SeatInventoryDtos.SeatInventoryResponse seatInventoryResponse = new SeatInventoryDtos.SeatInventoryResponse( id, cabin, totalSeats, availableSeats, flight_id );

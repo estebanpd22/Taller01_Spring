@@ -7,7 +7,7 @@ import unimagdalena.edu.co.Taller1.domine.entities.Tag;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-10-03T11:21:29-0500",
+    date = "2025-10-03T14:00:05-0500",
     comments = "version: 1.6.0, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
@@ -19,9 +19,11 @@ public class TagMapperStructImpl implements TagMapperStruct {
             return null;
         }
 
-        Tag tag = new Tag();
+        Tag.TagBuilder tag = Tag.builder();
 
-        return tag;
+        tag.name( request.name() );
+
+        return tag.build();
     }
 
     @Override
@@ -32,6 +34,9 @@ public class TagMapperStructImpl implements TagMapperStruct {
 
         Long id = null;
         String name = null;
+
+        id = tag.getId();
+        name = tag.getName();
 
         TagDtos.TagResponse tagResponse = new TagDtos.TagResponse( id, name );
 

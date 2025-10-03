@@ -8,7 +8,7 @@ import unimagdalena.edu.co.Taller1.domine.entities.PassengerProfile;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-10-03T11:21:29-0500",
+    date = "2025-10-03T14:00:05-0500",
     comments = "version: 1.6.0, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
@@ -20,9 +20,12 @@ public class PassengerMapperStructImpl implements PassengerMapperStruct {
             return null;
         }
 
-        Passenger passenger = new Passenger();
+        Passenger.PassengerBuilder passenger = Passenger.builder();
 
-        return passenger;
+        passenger.fullName( request.fullName() );
+        passenger.email( request.email() );
+
+        return passenger.build();
     }
 
     @Override
@@ -34,6 +37,11 @@ public class PassengerMapperStructImpl implements PassengerMapperStruct {
         Long id = null;
         String fullName = null;
         String email = null;
+
+        id = passenger.getId();
+        fullName = passenger.getFullName();
+        email = passenger.getEmail();
+
         PassengerDtos.PassengerProfileDto profileDto = null;
 
         PassengerDtos.PassengerResponse passengerResponse = new PassengerDtos.PassengerResponse( id, fullName, email, profileDto );
@@ -42,9 +50,16 @@ public class PassengerMapperStructImpl implements PassengerMapperStruct {
     }
 
     @Override
-    public void patch(PassengerDtos.PassengerUpdateRequest request, Passenger passenger) {
+    public void patch(Passenger passenger, PassengerDtos.PassengerUpdateRequest request) {
         if ( request == null ) {
             return;
+        }
+
+        if ( request.fullName() != null ) {
+            passenger.setFullName( request.fullName() );
+        }
+        if ( request.email() != null ) {
+            passenger.setEmail( request.email() );
         }
     }
 
@@ -57,6 +72,9 @@ public class PassengerMapperStructImpl implements PassengerMapperStruct {
         String phone = null;
         String countryCode = null;
 
+        phone = profile.getPhone();
+        countryCode = profile.getCountryCode();
+
         PassengerDtos.PassengerProfileDto passengerProfileDto = new PassengerDtos.PassengerProfileDto( phone, countryCode );
 
         return passengerProfileDto;
@@ -68,8 +86,11 @@ public class PassengerMapperStructImpl implements PassengerMapperStruct {
             return null;
         }
 
-        PassengerProfile passengerProfile = new PassengerProfile();
+        PassengerProfile.PassengerProfileBuilder passengerProfile = PassengerProfile.builder();
 
-        return passengerProfile;
+        passengerProfile.phone( dto.phone() );
+        passengerProfile.countryCode( dto.countryCode() );
+
+        return passengerProfile.build();
     }
 }

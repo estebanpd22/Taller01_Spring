@@ -14,7 +14,7 @@ public interface PassengerMapperStruct {
     PassengerResponse toResponse(Passenger passenger);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void patch(PassengerUpdateRequest request, @MappingTarget Passenger passenger);
+    void patch(@MappingTarget Passenger passenger, PassengerUpdateRequest request);
 
     PassengerProfileDto toDto(PassengerProfile profile);
 

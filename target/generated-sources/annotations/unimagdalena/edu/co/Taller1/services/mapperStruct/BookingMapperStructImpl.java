@@ -12,7 +12,7 @@ import unimagdalena.edu.co.Taller1.domine.entities.BookingItem;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-10-03T11:21:29-0500",
+    date = "2025-10-03T14:00:05-0500",
     comments = "version: 1.6.0, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
@@ -26,9 +26,14 @@ public class BookingMapperStructImpl implements BookingMapperStruct {
 
         Long id = null;
         OffsetDateTime createdAt = null;
+        List<BookingDtos.BookingItemResponse> items = null;
+
+        id = entity.getId();
+        createdAt = entity.getCreatedAt();
+        items = toItemResponseList( entity.getItems() );
+
         String passenger_name = null;
         String passenger_email = null;
-        List<BookingDtos.BookingItemResponse> items = null;
 
         BookingDtos.BookingResponse bookingResponse = new BookingDtos.BookingResponse( id, createdAt, passenger_name, passenger_email, items );
 
@@ -45,6 +50,14 @@ public class BookingMapperStructImpl implements BookingMapperStruct {
         String cabin = null;
         BigDecimal price = null;
         Integer segmentOrder = null;
+
+        id = entity.getId();
+        if ( entity.getCabin() != null ) {
+            cabin = entity.getCabin().name();
+        }
+        price = entity.getPrice();
+        segmentOrder = entity.getSegmentOrder();
+
         Long booking_id = null;
         Long flight_id = null;
         String flight_number = null;
@@ -72,6 +85,16 @@ public class BookingMapperStructImpl implements BookingMapperStruct {
     public void itemPatch(BookingDtos.BookingItemUpdateRequest request, BookingItem entity) {
         if ( request == null ) {
             return;
+        }
+
+        if ( request.price() != null ) {
+            entity.setPrice( request.price() );
+        }
+        if ( request.segmentOrder() != null ) {
+            entity.setSegmentOrder( request.segmentOrder() );
+        }
+        if ( request.cabin() != null ) {
+            entity.setCabin( mapCabin( request.cabin() ) );
         }
     }
 

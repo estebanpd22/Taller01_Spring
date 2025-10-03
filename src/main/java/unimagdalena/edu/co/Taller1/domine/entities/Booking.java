@@ -30,7 +30,7 @@ public class Booking {
     private List<BookingItem> items = new ArrayList<>();
 
     public void addItem(BookingItem item) {
-        this.items.add(item);
+        items.add(item);
         item.setBooking(this);
     }
 
