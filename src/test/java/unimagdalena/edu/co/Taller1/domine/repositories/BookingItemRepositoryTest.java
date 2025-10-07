@@ -1,10 +1,9 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;

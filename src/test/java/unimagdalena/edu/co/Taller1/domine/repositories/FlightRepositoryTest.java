@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.*;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -72,7 +72,7 @@ class FlightRepositoryTest extends AbstractRepositoryTI {
         Flight flight = createFlight("AV123", airline, origin, destination, OffsetDateTime.now().plusDays(1));
 
         // WHEN
-        List<Flight> flights = flightRepository.findByAirline_Name("Avianca");
+        Page<Flight> flights = flightRepository.findByAirline_Name("Avianca", PageRequest.of(0, 1));
 
         // THEN
         assertThat(flights).isNotEmpty();
@@ -116,7 +116,7 @@ class FlightRepositoryTest extends AbstractRepositoryTI {
         Flight f2 = createFlight("AV401", avianca, bog, mde, OffsetDateTime.now().plusHours(6));
 
         // WHEN
-        List<Flight> flights = flightRepository.searchWithAssociations(
+        List<Flight> flights = flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(
                 "BOG", "MDE",
                 OffsetDateTime.now(), OffsetDateTime.now().plusDays(1)
         );
@@ -149,8 +149,8 @@ class FlightRepositoryTest extends AbstractRepositoryTI {
         flightRepository.save(f2);
 
         // WHEN
-        List<Flight> flights = flightRepository.findFlightsWithAllTags(
-                List.of("PROMO", "VIP"), 2
+        List<Flight> flights = flightRepository.findFlightsWithTheseTags(
+                List.of("PROMO", "VIP"), 2L
         );
 
         // THEN

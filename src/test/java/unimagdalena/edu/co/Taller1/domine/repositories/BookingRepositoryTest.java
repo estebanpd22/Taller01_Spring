@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.*;
 
 import java.time.OffsetDateTime;
 

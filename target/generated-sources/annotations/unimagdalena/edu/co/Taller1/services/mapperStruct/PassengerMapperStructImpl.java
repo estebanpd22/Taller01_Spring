@@ -8,7 +8,7 @@ import unimagdalena.edu.co.Taller1.domine.entities.PassengerProfile;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-10-03T14:00:05-0500",
+    date = "2025-10-03T16:09:47-0500",
     comments = "version: 1.6.0, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component

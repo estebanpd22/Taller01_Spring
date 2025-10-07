@@ -16,7 +16,6 @@ import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
 import unimagdalena.edu.co.Taller1.domine.repositories.TagRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.FlightService;
-import unimagdalena.edu.co.Taller1.services.mapper.FlightMapper;
 import unimagdalena.edu.co.Taller1.services.mapperStruct.FlightMapperStruct;
 
 import java.time.OffsetDateTime;

@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.AirlineMapperStruct;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,9 @@ import static org.mockito.Mockito.*;
 public class AirlineServiceImplTest {
     @Mock
     AirlineRepository airlineRepository;
+
+    @Mock
+    AirlineMapperStruct mapper;
 
     @InjectMocks
     AirlineServiceImpl airlineService;
@@ -45,7 +49,7 @@ public class AirlineServiceImplTest {
         when(airlineRepository.findById(1L)).thenReturn(Optional.of(Airline.builder().id(1L).code("XD").name("Despegar.com").build()));
         when(airlineRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        var response = airlineService.update(1L, new AirlineUpdateRequest(null, "Wingo"));
+        var response = airlineService.update(1L, new AirlineUpdateRequest("XD", "Wingo"));
 
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.code()).isEqualTo("XD");

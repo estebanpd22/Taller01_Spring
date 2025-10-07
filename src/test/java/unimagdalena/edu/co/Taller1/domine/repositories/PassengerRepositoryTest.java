@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import unimagdalena.edu.co.Taller1.domine.entities.Passenger;
 import unimagdalena.edu.co.Taller1.domine.entities.PassengerProfile;
-import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
 
 import java.util.Optional;
 
