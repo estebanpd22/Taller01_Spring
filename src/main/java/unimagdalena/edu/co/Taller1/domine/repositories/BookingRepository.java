@@ -24,5 +24,4 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
     @Query("SELECT b FROM Booking b WHERE b.id = :id")
     Optional<Booking> fetchGraphById(@Param("id") Long id);
 
-    List<Booking> findByCreatedAtBetween(OffsetDateTime start, OffsetDateTime end);
 }

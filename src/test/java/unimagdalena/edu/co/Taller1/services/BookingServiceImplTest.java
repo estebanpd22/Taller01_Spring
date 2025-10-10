@@ -6,7 +6,6 @@ import unimagdalena.edu.co.Taller1.domine.repositories.BookingRepository;
 import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
 import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
 import unimagdalena.edu.co.Taller1.services.impl.BookingServiceImpl;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingMapperStruct;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingMapperStruct;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -34,6 +34,9 @@ public class BookingServiceImplTest {
 
     @Mock
     FlightRepository flightRepository;
+
+    @Mock
+    BookingMapperStruct bookingMapperStruct;
 
     @InjectMocks
     BookingServiceImpl bookingService;
@@ -75,7 +78,7 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    void shouldListBookingsBetweenDates(){
+    void shouldListBookingsCreatedBetweenDates(){
         var now = OffsetDateTime.now();
         when(bookingRepository.findByCreatedAtBetween(now.minusDays(1), now)).thenReturn(List.of(
                 Booking.builder().id(1L).createdAt(now.minusHours(12)).build(),
@@ -83,7 +86,7 @@ public class BookingServiceImplTest {
                 Booking.builder().id(3L).createdAt(now.minusMinutes(5)).build()
         ));
 
-        var response = bookingService.listBookingsBetweenDates(now.minusDays(1), now);
+        var response = bookingService.listBookingsCreatedBetweenDates(now.minusDays(1), now);
 
         assertThat(response).hasSize(3);
         assertThat(response).allSatisfy(booking -> assertThat(booking.createdAt())
@@ -145,7 +148,7 @@ public class BookingServiceImplTest {
                 .booking(booking)
                 .build();
 
-        booking.addItem(item);
+        bookingMapperStruct.addItem(item, booking);
 
         booking = bookingRepository.save(booking);
 

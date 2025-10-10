@@ -29,9 +29,5 @@ public class Booking {
     @Builder.Default
     private List<BookingItem> items = new ArrayList<>();
 
-    public void addItem(BookingItem item) {
-        items.add(item);
-        item.setBooking(this);
-    }
 
 }

@@ -132,8 +132,8 @@ public class BookingItemRepositoryTest extends AbstractRepositoryTI {
         ));
 
         // WHEN
-        long economyCount = bookingItemRepository.countByFlightIdAndCabin(flight.getId(), Cabin.ECONOMY);
-        long businessCount = bookingItemRepository.countByFlightIdAndCabin(flight.getId(), Cabin.BUSINESS);
+        long economyCount = bookingItemRepository.countSeatsByFlightAndCabin(flight.getId(), Cabin.ECONOMY);
+        long businessCount = bookingItemRepository.countSeatsByFlightAndCabin(flight.getId(), Cabin.BUSINESS);
 
         // THEN
         assertThat(economyCount).isEqualTo(2);

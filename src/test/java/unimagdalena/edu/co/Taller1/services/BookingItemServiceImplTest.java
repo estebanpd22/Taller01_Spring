@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingMapperStruct;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -24,10 +25,13 @@ public class BookingItemServiceImplTest {
     @Mock FlightRepository flightRepository;
     @Mock BookingRepository bookingRepository;
 
+    @Mock BookingMapperStruct  bookingMapper;
+
     @InjectMocks BookingItemServiceImpl bookingItemServiceImpl;
 
     @Test
     void shouldAddBookingItemAndMapToResponse(){
+
         var now = OffsetDateTime.now();
         when(flightRepository.findById(1L)).thenReturn(Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now)
                 .arrivalTime(now.plusHours(5)).build()));

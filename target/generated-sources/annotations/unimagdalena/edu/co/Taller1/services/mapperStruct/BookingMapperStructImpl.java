@@ -104,4 +104,12 @@ public class BookingMapperStructImpl implements BookingMapperStruct {
             return;
         }
     }
+
+    @Override
+    public void addItem(BookingItem item, Booking booking) {
+        if(item != null &&  booking != null) {
+            booking.getItems().add(item);
+            item.setBooking(booking);
+        }
+    }
 }

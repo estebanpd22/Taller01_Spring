@@ -11,12 +11,12 @@ import unimagdalena.edu.co.Taller1.domine.repositories.BookingRepository;
 import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.BookingService;
-import unimagdalena.edu.co.Taller1.services.mapper.BookingMapper;
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
 import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingMapperStruct;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,12 +41,6 @@ public class BookingServiceImpl implements BookingService {
         );
     }
 
-    @Override @Transactional(readOnly = true)
-    public List<BookingResponse> listBookingsBetweenDates(@Nonnull OffsetDateTime start, @Nonnull OffsetDateTime end) {
-        if (start.isAfter(end)) throw new IllegalArgumentException("Start date is after end date.");
-        return bookingRepository.findByCreatedAtBetween(start, end).stream()
-                .map(bookingMapperStruct::toResponse).toList();
-    }
 
     @Override @Transactional(readOnly = true)
     public Page<BookingResponse> listBookingsByPassengerEmailAndOrderedMostRecently(@Nonnull String passenger_email, Pageable pageable) {
@@ -54,12 +48,13 @@ public class BookingServiceImpl implements BookingService {
                 pageable).map(bookingMapperStruct::toResponse);
     }
 
-    @Override @Transactional(readOnly = true)
-    public BookingResponse getBookingWithAllDetails(@Nonnull Long id) {
-        return bookingRepository.findById(id).map(bookingMapperStruct::toResponse).orElseThrow(
-                () -> new NotFoundException("Booking %d not found.".formatted(id))
-        );
+    @Override
+    public Optional<BookingResponse> fetchGrpahById(Long id) {
+        return Optional.of(bookingRepository.fetchGraphById(id).map(bookingMapperStruct::toResponse).orElseThrow(
+                () -> new NotFoundException("Booking %d not found".formatted(id))
+        ));
     }
+
 
     @Override
     public BookingResponse update(@Nonnull Long id, Long passenger_id) {

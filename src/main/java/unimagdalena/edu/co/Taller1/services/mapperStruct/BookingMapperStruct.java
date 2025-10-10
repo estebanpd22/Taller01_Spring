@@ -24,4 +24,6 @@ public interface BookingMapperStruct {
     default Cabin mapCabin(String cabin) {
         return cabin != null ? Cabin.valueOf(cabin.toUpperCase()) : null;
     }
+
+    void addItem(BookingItem item, Booking booking);
 }

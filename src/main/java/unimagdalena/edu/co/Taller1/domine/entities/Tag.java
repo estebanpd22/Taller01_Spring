@@ -23,8 +23,4 @@ public class Tag {
     @Builder.Default
     private Set<Flight> flights = new HashSet<>();
 
-    public void addFlight(Flight flight) {
-        flights.add(flight);
-        flight.getTags().add(this);
-    }
 }

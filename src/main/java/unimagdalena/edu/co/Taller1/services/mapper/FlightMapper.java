@@ -43,8 +43,5 @@ public class FlightMapper {
         if (request.arrivalTime() != null ) entity.setArrivalTime(request.arrivalTime());
     }
 
-    public static void addTag(Flight flight, Tag tag) {
-        flight.addTag(tag);
-    }
 }
 

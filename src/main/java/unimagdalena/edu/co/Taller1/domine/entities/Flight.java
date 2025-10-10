@@ -46,9 +46,4 @@ public class Flight {
     @Builder.Default
     private Set<Tag> tags = new HashSet<>();
 
-    public void addTag(Tag tag) {
-        this.tags.add(tag);
-        tag.getFlights().add(this);
-    }
-
 }

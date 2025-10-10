@@ -22,6 +22,7 @@ public interface FlightMapperStruct {
 
     default void addTag(Flight flight, Tag tag) {
         if (flight == null || tag == null) return;
-        flight.addTag(tag);
+        flight.getTags().add(tag);
+        tag.getFlights().add(flight);
     }
 }

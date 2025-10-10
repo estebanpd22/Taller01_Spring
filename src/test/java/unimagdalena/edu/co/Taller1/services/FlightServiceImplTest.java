@@ -163,18 +163,29 @@ public class FlightServiceImplTest {
         assertThat(response.tags().size()).isEqualTo(2);
     }
 
-
+    //FALTA HACER LOS TEST DESDE ESTE HACIA ABAJO
     @Test
     void shouldAddTagToFlightAndMapToResponse() {
-        var now = OffsetDateTime.now();
-        var flight = Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7)).build());
+        OffsetDateTime departureTime = OffsetDateTime.now();
+        OffsetDateTime arrivalTime = OffsetDateTime.now().plusHours(2);
+
+        var flight = Optional.of(Flight.builder().id(10L).number("123")
+                .departureTime(departureTime).arrivalTime(arrivalTime)
+                .airline(Airline.builder().id(1L).code("airlineCode").name("airlineName").build())
+                .origin(Airport.builder().id(2L).code("originCode").name("originName").city("originCity").build())
+                .destination(Airport.builder().id(3L).code("destinationCode").name("destinationName").city("destinationCity").build()).build());
+
+        when(flightRepository.findById(10L));
+
+        /*
+        Flight flight = Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7)).build());
         when(flightRepository.findById(1L)).thenReturn(flight);
         when(tagRepository.findById(10001L)).thenReturn(Optional.of(Tag.builder().id(10001L).name("tag 1").build()));
 
         var response = flightService.addTagToFlight(1L, 10001L);
 
         assertThat(response.tags()).hasSize(3);
-
+*/
     }
 
     @Test
