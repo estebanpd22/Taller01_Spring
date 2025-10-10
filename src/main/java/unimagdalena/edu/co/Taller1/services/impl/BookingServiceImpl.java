@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import unimagdalena.edu.co.Taller1.domine.entities.Booking;
+import unimagdalena.edu.co.Taller1.domine.entities.Passenger;
 import unimagdalena.edu.co.Taller1.domine.repositories.BookingRepository;
 import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
@@ -57,16 +58,16 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public BookingResponse update(@Nonnull Long id, Long passenger_id) {
+    public BookingResponse update(@Nonnull Long id, BookingUpdateRequest request) {
+        if(request == null)throw new IllegalArgumentException("BookingUpdateRequest cannot be null.");
         var booking = bookingRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Booking %d not found.".formatted(id))
         );
-        if (passenger_id != null) {
-            var new_passenger = passengerRepository.findById(id).orElseThrow(
-                    () -> new NotFoundException("Passenger %d not found.".formatted(id))
-            );
-            booking.setPassenger(new_passenger);
+        Passenger passenger;
+        if(request.passenger_id() != null) {
+            passenger = passengerRepository.findById(request.passenger_id()).orElseThrow( () -> new NotFoundException("Passenger %d not found.".formatted(id)));
         }
+
         return bookingMapperStruct.toResponse(bookingRepository.save(booking));
     }
 

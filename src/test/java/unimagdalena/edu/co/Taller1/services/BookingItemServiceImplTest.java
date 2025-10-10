@@ -1,6 +1,7 @@
 package unimagdalena.edu.co.Taller1.services;
 
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
+import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos.*;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
 import unimagdalena.edu.co.Taller1.domine.repositories.*;
 import unimagdalena.edu.co.Taller1.services.impl.BookingItemServiceImpl;
@@ -37,8 +38,9 @@ public class BookingItemServiceImplTest {
                 .arrivalTime(now.plusHours(5)).build()));
         when(bookingRepository.findById(101L)).thenReturn(Optional.of(Booking.builder().id(101L).createdAt(now).build()));
 
+
         var response = bookingItemServiceImpl.addBookingItem(101L, 1L,
-                new BookingItemCreateRequest("ECONOMY", new BigDecimal(1000000), 1));
+                new BookingItemCreateRequest("ECONOMY", new BigDecimal(1000000), 1, 1L));
 
         assertThat(response).isNotNull();
         assertThat(response.flight_id()).isEqualTo(1L);
