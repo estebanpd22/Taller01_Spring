@@ -15,6 +15,6 @@ public interface BookingService {
     Page<BookingResponse> listBookingsByPassengerEmailAndOrderedMostRecently(String passenger_email, Pageable pageable);
     Optional<BookingResponse> fetchGrpahById(Long id);
 
-    BookingResponse update(Long id, Long passenger_id);
+    BookingResponse update(Long id, BookingUpdateRequest request);
     void delete(Long id);
 }

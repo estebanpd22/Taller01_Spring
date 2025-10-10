@@ -3,6 +3,7 @@ package unimagdalena.edu.co.Taller1.services.mapper;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
 
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
+import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos.*;
 
 import java.util.ArrayList;
 import java.util.List;

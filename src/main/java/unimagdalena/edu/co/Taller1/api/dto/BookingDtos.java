@@ -11,12 +11,8 @@ public class BookingDtos {
     public record BookingCreateRequest(@Nonnull Long passenger_id) implements Serializable {}
 
     public record BookingResponse(Long id, OffsetDateTime createdAt, String passenger_name, String passenger_email,
-                                  List<BookingItemResponse> items) implements Serializable{}
+                                  List<BookingItemDtos.BookingItemResponse> items) implements Serializable{}
 
+    public record BookingUpdateRequest(Long passenger_id)  implements Serializable {}
 
-    public record BookingItemCreateRequest(@Nonnull String cabin, @Nonnull BigDecimal price, @Nonnull Integer segmentOrder) implements Serializable {}
-
-    public record BookingItemUpdateRequest(String cabin, BigDecimal price, Integer segmentOrder) implements Serializable {}
-
-    public record BookingItemResponse(Long id, String cabin, BigDecimal price, Integer segmentOrder, Long booking_id, Long flight_id, String flight_number) implements Serializable{}
 }
