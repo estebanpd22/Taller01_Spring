@@ -1,4 +1,4 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import unimagdalena.edu.co.Taller1.domine.entities.SeatInventory;
 import unimagdalena.edu.co.Taller1.domine.entities.Flight;
 import unimagdalena.edu.co.Taller1.domine.entities.Cabin;
-import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.SeatInventoryRepository;
 
 import java.util.Optional;
 
@@ -68,8 +66,8 @@ class SeatInventoryRepositoryTest extends AbstractRepositoryTI {
         createSeatInventory(flight, Cabin.BUSINESS, 10, 5);
 
         // WHEN
-        boolean disponible = seatInventoryRepository.hasAvailableSeats(flight.getId(), Cabin.BUSINESS, 3);
-        boolean noDisponible = seatInventoryRepository.hasAvailableSeats(flight.getId(), Cabin.BUSINESS, 8);
+        boolean disponible = seatInventoryRepository.existsByFlight_IdAndCabinAndAvailableSeatsIsGreaterThanEqual(flight.getId(), Cabin.BUSINESS, 3);
+        boolean noDisponible = seatInventoryRepository.existsByFlight_IdAndCabinAndAvailableSeatsIsGreaterThanEqual(flight.getId(), Cabin.BUSINESS, 8);
 
         // THEN
         assertThat(disponible).isTrue();

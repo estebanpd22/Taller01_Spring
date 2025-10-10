@@ -1,10 +1,9 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import unimagdalena.edu.co.Taller1.domine.entities.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -15,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BookingItemRepositoryTest extends AbstractRepositoryTI {
 
     @Autowired
-    private BookingRepository bookingRepository;
+    BookingRepository bookingRepository;
 
     @Autowired
     private PassengerRepository passengerRepository;
@@ -133,8 +132,8 @@ public class BookingItemRepositoryTest extends AbstractRepositoryTI {
         ));
 
         // WHEN
-        long economyCount = bookingItemRepository.countByFlightIdAndCabin(flight.getId(), Cabin.ECONOMY);
-        long businessCount = bookingItemRepository.countByFlightIdAndCabin(flight.getId(), Cabin.BUSINESS);
+        long economyCount = bookingItemRepository.countSeatsByFlightAndCabin(flight.getId(), Cabin.ECONOMY);
+        long businessCount = bookingItemRepository.countSeatsByFlightAndCabin(flight.getId(), Cabin.BUSINESS);
 
         // THEN
         assertThat(economyCount).isEqualTo(2);

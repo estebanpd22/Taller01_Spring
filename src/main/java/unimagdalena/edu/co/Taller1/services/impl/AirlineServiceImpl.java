@@ -20,46 +20,46 @@ public class AirlineServiceImpl implements AirlineService {
     private final AirlineRepository airlineRepository;
     private final AirlineMapperStruct airlineMapper;
     @Override
-    public AirlineResponse createAirline(AirlineCreateRequest request) {
+    public AirlineResponse create(AirlineCreateRequest request) {
         var airline = airlineMapper.toEntity(request);
         return airlineMapper.toResponse(airlineRepository.save(airline));
     }
 
     @Override @Transactional(readOnly = true)
-    public AirlineResponse getAirline(@Nonnull Long id) {
+    public AirlineResponse getById(@Nonnull Long id) {
         return airlineRepository.findById(id).map(airlineMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
     }
 
     @Override @Transactional(readOnly = true)
-    public AirlineResponse getAirlineByCode(@Nonnull String code) {
+    public AirlineResponse getByCode(@Nonnull String code) {
         return airlineRepository.findByCodeIgnoreCase(code).map(airlineMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("Airline with code %s not found.".formatted(code)));
     }
 
     @Override
-    public AirlineResponse updateAirline(@Nonnull Long id, AirlineUpdateRequest request) {
+    public AirlineResponse update(@Nonnull Long id, AirlineUpdateRequest request) {
         var airline = airlineRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
 
-        airlineMapper.patch(airline, request);
+        airlineMapper.patch(request, airline);
         return airlineMapper.toResponse(airlineRepository.save(airline));
         //static void patch(Airline airline, AirlineUpdateRequest request) {
         //    }
     }
 
     @Override
-    public void deleteAirline(@Nonnull Long id) {
+    public void delete(@Nonnull Long id) {
         airlineRepository.deleteById(id);
     }
 
     @Override @Transactional(readOnly = true)
-    public List<AirlineResponse> listAllAirlines() {
+    public List<AirlineResponse> airlineList() {
         return airlineRepository.findAll().stream().map(airlineMapper::toResponse).toList();
     }
 
-    @Override
-    public Page<AirlineResponse> listAllAirlinesPage(Pageable pageable) {
+    @Override @Transactional(readOnly = true)
+    public Page<AirlineResponse> airlinePageList(Pageable pageable) {
         return airlineRepository.findAll(pageable).map(airlineMapper::toResponse);
     }
 }

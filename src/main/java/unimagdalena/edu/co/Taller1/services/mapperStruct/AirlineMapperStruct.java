@@ -9,9 +9,8 @@ public interface AirlineMapperStruct {
 
     Airline toEntity(AirlineCreateRequest request);
 
-     AirlineResponse toResponse(Airline entity);
-     void patch(Airline airline, AirlineUpdateRequest request);
+    AirlineResponse toResponse(Airline entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateAirlineFromDto(AirlineUpdateRequest request, @MappingTarget Airline entity);
+    void patch(AirlineUpdateRequest request, @MappingTarget Airline entity);
 }

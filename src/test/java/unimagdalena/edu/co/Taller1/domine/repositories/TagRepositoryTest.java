@@ -1,11 +1,10 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import unimagdalena.edu.co.Taller1.domine.entities.Tag;
-import unimagdalena.edu.co.Taller1.domine.repositories.TagRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,7 @@ class TagRepositoryTest extends AbstractRepositoryTI {
         List<String> names = List.of("PROMO", "VIP", "OFERTA");
 
         // WHEN
-        List<Tag> encontrados = tagRepository.findByNameIgnoreCaseIn(names, PageRequest.of(0, 2));
+        List<Tag> encontrados = tagRepository.findByNameIn(names);
 
         // THEN
         assertThat(encontrados).hasSize(2);

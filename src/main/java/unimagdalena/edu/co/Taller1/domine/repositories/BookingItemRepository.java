@@ -31,7 +31,4 @@ public interface BookingItemRepository extends JpaRepository<BookingItem,Long> {
     long countSeatsByFlightAndCabin(@Param("flightId") Long flightId,
                                     @Param("cabin") Cabin cabin);
 
-    long countByFlightIdAndCabin(Long flightId, Cabin cabin);
-
-    List<BookingItem> findByBookingIdOrderBySegmentOrder(Long bookingId);
 }

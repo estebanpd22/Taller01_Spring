@@ -3,7 +3,6 @@ package unimagdalena.edu.co.Taller1.domine.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Entity

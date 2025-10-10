@@ -7,8 +7,9 @@ import java.util.List;
 
 public interface BookingItemService {
     //Basic CRUD
+    BookingItemResponse create(BookingItemCreateRequest bookingItemCreateRequest);
     BookingItemResponse addBookingItem(Long booking_id, Long flight_id, BookingItemCreateRequest request);
-    BookingItemResponse getBookingItem(Long id);
+    BookingItemResponse getBookingItemById(Long id);
     BookingItemResponse updateBookingItem(Long id, BookingItemUpdateRequest request, Long flight_id);
     void deleteBookingItem(Long id);
     //-------------------------------------------------------//

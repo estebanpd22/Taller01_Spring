@@ -14,9 +14,7 @@ public interface AirportMapperStruct {
 
     AirportResponse toResponse(Airport entity);
 
-    void patch(Airport airport, AirportDtos.AirportUpdateRequest request);
-
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateAirportFromDto(AirportUpdateRequest request, @MappingTarget Airport entity);
+    void patch(@MappingTarget Airport entity, AirportUpdateRequest request);
 }
 

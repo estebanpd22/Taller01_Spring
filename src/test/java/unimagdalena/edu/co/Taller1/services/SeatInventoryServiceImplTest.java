@@ -1,12 +1,11 @@
-package unimagdalena.edu.co.Taller1.service;
+package unimagdalena.edu.co.Taller1.services;
 
-import co.edu.unimagdalena.despeganding.api.dto.SeatInventoryDTOs.*;
-import co.edu.unimagdalena.despeganding.domain.entities.Cabin;
-import co.edu.unimagdalena.despeganding.domain.entities.Flight;
-import co.edu.unimagdalena.despeganding.domain.entities.SeatInventory;
-import co.edu.unimagdalena.despeganding.domain.repositories.FlightRepository;
-import co.edu.unimagdalena.despeganding.domain.repositories.SeatInventoryRepository;
-import co.edu.unimagdalena.despeganding.services.impl.SeatInventoryServiceImpl;
+import org.assertj.core.api.Assertions;
+import unimagdalena.edu.co.Taller1.api.dto.SeatInventoryDtos.*;
+import unimagdalena.edu.co.Taller1.domine.entities.*;
+import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
+import unimagdalena.edu.co.Taller1.domine.repositories.SeatInventoryRepository;
+import unimagdalena.edu.co.Taller1.services.impl.SeatInventoryServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +16,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -38,8 +38,8 @@ public class SeatInventoryServiceImplTest {
             return sI;
         });
 
-        var response = seatInventoryService.createSeatInventory(1L,
-                new SeatInventoryCreateRequest("ECONOMY", 40, 35));
+        var response = seatInventoryService.create(1L,
+                new SeatInventoryCreateRequest(Cabin.ECONOMY, 40, 35, 1L));
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(10L);
@@ -55,12 +55,12 @@ public class SeatInventoryServiceImplTest {
         ));
         when(seatInventoryRepository.save(any())).thenAnswer(invocation -> invocation.<SeatInventory>getArgument(0));
 
-        var response = seatInventoryService.updateSeatInventory(10L,
-                new SeatInventoryUpdateRequest(null, 40, 5));
+        var response = seatInventoryService.update(10L,
+                new SeatInventoryUpdateRequest(Cabin.ECONOMY, 40, 5));
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(10L);
-        assertThat(response.cabin()).isEqualTo("ECONOMY");
+        assertThat(response.cabin()).isEqualTo(Cabin.valueOf("ECONOMY"));
         assertThat(response.totalSeats()).isEqualTo(40);
         assertThat(response.availableSeats()).isEqualTo(5);
     }
@@ -83,10 +83,9 @@ public class SeatInventoryServiceImplTest {
 
         var response = seatInventoryService.listSeatInventoriesByFlight(1L);
 
-        assertThat(response).hasSize(3);
-        assertThat(response).allSatisfy(seatInventory -> {
-            assertThat(seatInventory.flight_id()).isEqualTo(1L);
-        });
+        Assertions.assertThat(response).hasSize(3);
+        Assertions.assertThat(response).extracting(SeatInventoryResponse::flight_id)
+                .allMatch(flight_id -> flight_id.equals(1L));
     }
 
     @Test

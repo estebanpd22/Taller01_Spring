@@ -1,19 +1,20 @@
-package unimagdalena.edu.co.Taller1.repositories;
+package unimagdalena.edu.co.Taller1.domine.repositories;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import unimagdalena.edu.co.Taller1.domine.entities.Airline;
-import unimagdalena.edu.co.Taller1.domine.repositories.AirlineRepository;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ContextConfiguration
 class AirlineRepositoryTest extends AbstractRepositoryTI {
 
     @Autowired
-    private AirlineRepository airlineRepository;
+     AirlineRepository airlineRepository;
 
     @Test
     @DisplayName("Debe encontrar aerolínea por código ignorando mayúsculas/minúsculas")

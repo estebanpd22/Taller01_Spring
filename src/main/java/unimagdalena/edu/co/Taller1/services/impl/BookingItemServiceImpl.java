@@ -26,7 +26,16 @@ public class BookingItemServiceImpl implements BookingItemService {
     private final BookingRepository bookingRepository;
     private final BookingMapperStruct bookingMapperStruct;
 
-    @Override @Transactional
+    @Override
+    public BookingItemResponse create(BookingItemCreateRequest bookingItemCreateRequest) {
+        var flight =  flightRepository.findById(flight_id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(flight_id)));
+        var booking = bookingRepository.findById(booking_id).orElseThrow(
+                () -> new NotFoundException("Booking %d not found".formatted(booking_id))
+        );
+        return bookingMapperStruct.toItemResponse(bookingItemRepository.save(bookingItem));
+    }
+
+    @Override
     public BookingItemResponse addBookingItem(@Nonnull Long booking_id, @Nonnull Long flight_id, BookingItemCreateRequest request) {
         var flight =  flightRepository.findById(flight_id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(flight_id)));
         var booking = bookingRepository.findById(booking_id).orElseThrow(
@@ -34,25 +43,25 @@ public class BookingItemServiceImpl implements BookingItemService {
         );
 
         var bookingItem = BookingItem.builder().cabin(Cabin.valueOf(request.cabin())).price(request.price()).segmentOrder(request.segmentOrder())
-                .flight(flight).build();
+                .flight(flight).booking(booking).build();
         bookingMapperStruct.addItem(bookingItem, booking);
 
         return bookingMapperStruct.toItemResponse(bookingItem);
     }
 
-    @Override
-    public BookingItemResponse getBookingItem(@Nonnull Long id) {
+    @Override @Transactional(readOnly = true)
+    public BookingItemResponse getBookingItemById(@Nonnull Long id) {
         return bookingItemRepository.findById(id).map(bookingMapperStruct::toItemResponse).orElseThrow(
                 () -> new NotFoundException("Booking Item %d not found".formatted(id))
         );
     }
 
-    @Override @Transactional
+    @Override
     public BookingItemResponse updateBookingItem(@Nonnull Long id, BookingItemUpdateRequest request, @Nonnull Long flight_id) {
         var bookingItem = bookingItemRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Booking Item %d not found".formatted(id))
         );
-        bookingMapperStruct.itemPatch(bookingItem, request);
+        bookingMapperStruct.itemPatch(request, bookingItem);
 
         var flight = flightRepository.findById(flight_id).orElseThrow(
                 () -> new NotFoundException("Flight %d not found".formatted(flight_id))
@@ -62,20 +71,18 @@ public class BookingItemServiceImpl implements BookingItemService {
         return bookingMapperStruct.toItemResponse(bookingItem);
     }
 
-    @Override @Transactional
+    @Override
     public void deleteBookingItem(@Nonnull Long id) {
         bookingItemRepository.deleteById(id);
     }
 
     @Override
-    public List<BookingItemResponse> listBookingItemsByBooking(@Nonnull Long booking_id) {
-        var booking = bookingRepository.findById(booking_id).orElseThrow(
-                () -> new NotFoundException("Booking %d not found".formatted(booking_id))
-        );
-        return bookingItemRepository.findByBooking_IdOrderBySegmentOrder(booking.getId()).stream().map(bookingMapperStruct::toItemResponse).toList();
+    public List<BookingItemResponse> listBookingItemsByBooking(Long booking_id) {
+        return List.of();
     }
 
-    @Override
+
+    @Override @Transactional(readOnly = true)
     public Long countReservedSeatsByFlightAndCabin(@Nonnull Long flight_id, String cabin) {
         var flight = flightRepository.findById(flight_id).orElseThrow(
                 () -> new NotFoundException("Flight %d not found".formatted(flight_id))
@@ -83,7 +90,7 @@ public class BookingItemServiceImpl implements BookingItemService {
         return bookingItemRepository.countSeatsByFlightAndCabin(flight.getId(), Cabin.valueOf(cabin));
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public BigDecimal calculateTotalPriceByBooking(@Nonnull Long booking_id) {
         var booking = bookingRepository.findById(booking_id).orElseThrow(
                 () -> new NotFoundException("Booking %d not found".formatted(booking_id))

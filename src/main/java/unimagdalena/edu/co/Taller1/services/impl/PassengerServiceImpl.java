@@ -18,44 +18,44 @@ public class PassengerServiceImpl implements PassengerService {
     private final PassengerRepository passengerRepository;
     private final PassengerMapperStruct passengerMapperStruct;
 
-    @Override @Transactional
-    public PassengerResponse createPassenger(PassengerCreateRequest request) {
+    @Override
+    public PassengerResponse create(PassengerCreateRequest request) {
         var passenger = passengerMapperStruct.toEntity(request);
         return passengerMapperStruct.toResponse(passengerRepository.save(passenger));
     }
 
-    @Override
-    public PassengerResponse getPassenger(@Nonnull Long id) {
+    @Override @Transactional(readOnly = true)
+    public PassengerResponse getById(@Nonnull Long id) {
         return passengerRepository.findById(id).map(passengerMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Passenger %d not found.".formatted(id)));
     }
 
-    @Override
-    public PassengerResponse getPassengerByEmail(@Nonnull String email) {
+    @Override @Transactional(readOnly = true)
+    public PassengerResponse getByEmail(@Nonnull String email) {
         return passengerRepository.findByEmailIgnoreCase(email).map(passengerMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Passenger with email %s not found.".formatted(email)));
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public PassengerResponse getPassengerWithProfile(@Nonnull String email) {
         return passengerRepository.findByEmailIgnoreCase(email).map(passengerMapperStruct::toResponse)
                 .orElseThrow(() -> new NotFoundException("Passenger with email %s not found.".formatted(email)));
     }
 
-    @Override @Transactional
-    public PassengerResponse updatePassenger(@Nonnull Long id, PassengerUpdateRequest request) {
+    @Override
+    public PassengerResponse update(@Nonnull Long id, PassengerUpdateRequest request) {
         var passenger = passengerRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Passenger %d not found.".formatted(id)));
         passengerMapperStruct.patch(passenger, request);
         return passengerMapperStruct.toResponse(passengerRepository.save(passenger));
     }
 
-    @Override @Transactional
-    public void deletePassenger(@Nonnull Long id) {
+    @Override
+    public void delete(@Nonnull Long id) {
         passengerRepository.deleteById(id);
     }
 
-    @Override
+    @Override @Transactional(readOnly = true)
     public Page<PassengerResponse> listAllPassengers(Pageable pageable) {
         return passengerRepository.findAll(pageable).map(passengerMapperStruct::toResponse);
     }
