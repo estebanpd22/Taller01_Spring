@@ -14,10 +14,14 @@ import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.FlightMapperStruct;
+
+import javax.lang.model.util.Elements;
 
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,51 +33,136 @@ public class FlightServiceImplTest {
     @Mock AirlineRepository airlineRepository;
     @Mock TagRepository tagRepository;
 
+    @Mock
+    FlightMapperStruct mapperStruct;
+
     @InjectMocks FlightServiceImpl flightService;
 
     @Test
     void shouldCreateFlightAndMapToResponse() {
-        when(airlineRepository.findById(1L)).thenReturn(Optional.of(Airline.builder().id(1L).code("XD").name("Airline With Down").build()));
-        when(airportRepository.findById(1L)).thenReturn(Optional.of(Airport.builder().id(1L).code("ZZZ").name("Fake Madrid").city("Madrid").build()));
-        when(airportRepository.findById(2L)).thenReturn(Optional.of(Airport.builder().id(2L).code("OMG").name("Barca-port").city("Barcelona").build()));
-        when(flightRepository.save(any())).thenAnswer(invocation -> {
-            Flight flight =  invocation.getArgument(0);
-            flight.setId(10L);
-            return flight;
+        Set<Long> tags = new HashSet<>();
+        tags.add(1L);
+        tags.add(2L);
+
+        Set<TagRef> tagRefs = new HashSet<>();
+        tagRefs.add(new TagRef(1L, "tagRef1"));
+        tagRefs.add(new TagRef(2L, "tagRef2"));
+
+        var departureTime = OffsetDateTime.now();
+        var arrivalTime = OffsetDateTime.now().plusHours(2);
+
+        Flight flight = Flight.builder()
+                .number("123")
+                .departureTime(departureTime)
+                .arrivalTime(arrivalTime)
+                .airline(Airline.builder().id(1L).code("airlineCode").name("airlineName").build())
+                .origin(Airport.builder().id(2L).code("originCode").name("originName").city("originCity").build())
+                .destination(Airport.builder().id(3L).code("destinationCode").name("destinationName").city("destinationCity").build())
+                .build();
+
+        when(mapperStruct.toEntity(any(FlightCreateRequest.class))).thenReturn(flight);
+
+
+        when(flightRepository.save(any(Flight.class))).thenAnswer(invocation -> {
+            Flight flight1 =  invocation.getArgument(0);
+            flight1.setId(10L);
+            return flight1;
         });
 
-        var now = OffsetDateTime.now();
-        var response = flightService.create(new FlightCreateRequest("XXD001", OffsetDateTime.now(), OffsetDateTime.now().plusHours(2), 1L, 1L, 2L, Set.of(10L, 20L)), 1L, 1L, 2L);
+        when(mapperStruct.toResponse(any(Flight.class))).thenAnswer(inv -> {
+            Flight flight1 =  inv.getArgument(0);
+            return new FlightResponse(flight1.getId(), flight1.getNumber(),
+                    flight1.getDepartureTime(), flight1.getArrivalTime(),
+                    new AirlineRef(flight1.getAirline().getId(), flight1.getAirline().getCode(), flight1.getAirline().getName()),
+                    new AirportRef(flight1.getOrigin().getId(), flight1.getOrigin().getCode(), flight1.getOrigin().getCity()),
+                    new AirportRef(flight1.getDestination().getId(), flight1.getDestination().getCode(), flight1.getDestination().getCity()),
+                    tagRefs);
+        });
 
-        assertThat(response.id()).isEqualTo(10L);
-        assertThat(response.number()).isEqualTo("XD0001");
+        var response = flightService.create(new FlightCreateRequest("123", departureTime, arrivalTime, 1L, 2L, 3L, Set.of(1L, 2L)));
+
+        assertThat(response.id()).isNotNull();
+        assertThat(response.number()).isEqualTo("123");
         assertThat(response.airline().id()).isEqualTo(1L);
-        assertThat(response.origin().id()).isEqualTo(1L);
-        assertThat(response.destination().id()).isEqualTo(2L);
+        assertThat(response.origin().id()).isEqualTo(2L);
+        assertThat(response.destination().id()).isEqualTo(3L);
+        assertThat(response.tags().size()).isEqualTo(2);
     }
 
     @Test
     void shouldUpdateFlightAndMapToResponse() {
-        var now = OffsetDateTime.now();
-        var destination = Optional.of(Airport.builder().id(1L).code("XD").name("Zzzairport").city("Soledad").build());
-        var destination_2 = Optional.of(Airport.builder().id(2L).code("DX").name("Derivairport").city("Malambo").build());
-        when(airportRepository.findById(1L)).thenReturn(destination);
-        when(airportRepository.findById(2L)).thenReturn(destination_2);
-        when(flightRepository.findById(101L)).thenReturn(Optional.of(Flight.builder().id(101L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7))
-                .destination(destination.get()).build()));
-        when(flightRepository.save(any())).thenAnswer(invocation -> invocation.<Flight>getArgument(0));
+        Set<Long> tags = new HashSet<>();
+        tags.add(1L);
+        tags.add(2L);
 
-        var response = flightService.update(new FlightUpdateRequest("XD0002",
-                OffsetDateTime.now(), OffsetDateTime.now().plusHours(2), 2L, 1L,
-                3L, Set.of(10L,20L,30L)), 101L);
+        Set<TagRef> tagRefs = new HashSet<>();
+        tagRefs.add(new TagRef(1L, "tagRef1"));
+        tagRefs.add(new TagRef(2L, "tagRef2"));
+
+        OffsetDateTime departureTime = OffsetDateTime.now();
+        OffsetDateTime arrivalTime = OffsetDateTime.now().plusHours(2);
+
+        Airline mockAirline = Airline.builder().id(1L).code("airlineCode").name("airlineName").build();
+        Airport mockOrigin = Airport.builder().id(2L).code("originCode").name("originName").city("originCity").build();
+        Airport mockDestination = Airport.builder().id(3L).code("destinationCode").name("destinationName").city("destinationCity").build();
+        Set<Tag> mockTags = Set.of(
+                Tag.builder().id(1L).name("tagRef1").build(),
+                Tag.builder().id(2L).name("tagRef2").build()
+        );
+
+        when(airlineRepository.findById(1L)).thenReturn(Optional.of(mockAirline));
+        when(airportRepository.findById(2L)).thenReturn(Optional.of(mockOrigin));
+        when(airportRepository.findById(3L)).thenReturn(Optional.of(mockDestination));
+        when(tagRepository.findTagsByIdIn(Set.of(1L, 2L))).thenReturn(mockTags);
+
+        when(flightRepository.findById(10L)).thenReturn(Optional.of(Flight.builder()
+                .id(10L).departureTime(departureTime).arrivalTime(arrivalTime)
+                .airline(Airline.builder().code("airlineCode").name("airlineCode").build())
+                .origin(Airport.builder().code("originCode").name("originName").city("originCity").build())
+                .destination(Airport.builder().code("destinationCode").name("destinationName").city("destinationCity").build())
+                .build()));
+
+        doAnswer(inv ->{
+            Flight flight = inv.getArgument(0);
+            FlightUpdateRequest flightUpdateRequest = inv.getArgument(1);
+            flight.setNumber(flightUpdateRequest.number());
+            flight.setDepartureTime(flightUpdateRequest.departureTime());
+            flight.setArrivalTime(flightUpdateRequest.arrivalTime());
+            flight.setAirline(airlineRepository.findById(flightUpdateRequest.airlineId()).get());
+            flight.setOrigin(airportRepository.findById(flightUpdateRequest.originId()).get());
+            flight.setDestination(airportRepository.findById(flightUpdateRequest.destinationId()).get());
+            flight.setTags(tagRepository.findTagsByIdIn(flightUpdateRequest.tagIds()));
+            return null;
+        }).when(mapperStruct).patch(any(Flight.class), any(FlightUpdateRequest.class));
+
+        when(flightRepository.save(any(Flight.class))).thenAnswer(inv -> {
+            return inv.getArgument(0);
+        });
+
+        when(mapperStruct.toResponse(any(Flight.class))).thenAnswer(inv -> {
+            Flight flight = inv.getArgument(0);
+            return new FlightResponse(flight.getId(), flight.getNumber(),
+                    flight.getDepartureTime(), flight.getArrivalTime(),
+                    new AirlineRef(flight.getAirline().getId(), flight.getAirline().getCode(), flight.getAirline().getName()),
+                    new AirportRef(flight.getOrigin().getId(), flight.getOrigin().getCode(), flight.getOrigin().getCity()),
+                    new AirportRef(flight.getDestination().getId(), flight.getDestination().getCode(), flight.getDestination().getCity()),
+                    tagRefs);
+
+        });
+
+        var response = flightService.update(new FlightUpdateRequest("123",
+                departureTime, arrivalTime, 1L, 2L,
+                3L, Set.of(1L,2L)), 10L);
 
         assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(101L);
-        assertThat(response.number()).isEqualTo("XD0002");
-        assertThat(response.airline().id()).isEqualTo(2L);
-        assertThat(response.origin().id()).isEqualTo(1L);
+        assertThat(response.id()).isEqualTo(10L);
+        assertThat(response.number()).isEqualTo("123");
+        assertThat(response.airline().id()).isEqualTo(1L);
+        assertThat(response.origin().id()).isEqualTo(2L);
         assertThat(response.destination().id()).isEqualTo(3L);
+        assertThat(response.tags().size()).isEqualTo(2);
     }
+
 
     @Test
     void shouldAddTagToFlightAndMapToResponse() {

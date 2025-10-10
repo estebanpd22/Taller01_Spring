@@ -7,8 +7,8 @@ import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 
 public interface FlightService {
-    //Basic CRUD
-    FlightResponse create(FlightCreateRequest request, Long airline_id, Long origin_airport_id, Long destination_airport_id);
+
+    FlightResponse create(FlightCreateRequest request);
 
     FlightResponse getById(Long id);
 

@@ -1,6 +1,11 @@
 package unimagdalena.edu.co.Taller1.services;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos;
+import unimagdalena.edu.co.Taller1.api.dto.AirportDtos;
 import unimagdalena.edu.co.Taller1.api.dto.AirportDtos.*;
+import unimagdalena.edu.co.Taller1.domine.entities.Airline;
 import unimagdalena.edu.co.Taller1.domine.entities.Airport;
 import unimagdalena.edu.co.Taller1.domine.repositories.AirportRepository;
 import unimagdalena.edu.co.Taller1.services.impl.AirportServiceImpl;
@@ -9,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import unimagdalena.edu.co.Taller1.services.mapperStruct.AirportMapperStruct;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,45 +27,88 @@ public class AirportServiceImplTest {
     @Mock
     AirportRepository airportRepository;
 
+    @Mock
+    AirportMapperStruct mapperStruct;
+
     @InjectMocks
     AirportServiceImpl airportService;
 
     @Test
     void shouldCreateAirportAndMapToResponse(){
-        when(airportRepository.save(any())).thenAnswer(inv -> {
-            Airport a = inv.getArgument(0); a.setId(11L); return a;
+        Airport airport = Airport.builder()
+                .code("Code")
+                .name("Nombre")
+                .city("City")
+                .build();
+
+        when(mapperStruct.toEntity(any(AirportCreateRequest.class))).thenReturn(airport);
+
+
+        when(airportRepository.save(any(Airport.class))).thenAnswer(inv -> {
+            Airport a = inv.getArgument(0);
+            a.setId(11L);
+            return a;
         });
 
-        var response = airportService.create(new AirportCreateRequest("ZZZ", "RandomAirport", "Malambo"));
+        when(mapperStruct.toResponse(any(Airport.class))).thenAnswer(inv -> {
+            Airport a = inv.getArgument(0);
+            return new AirportResponse(a.getId(), a.getCode(), a.getName(), a.getCity());
+        });
 
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(11L);
-        assertThat(response.code()).isEqualTo("ZZZ");
-        assertThat(response.name()).isEqualTo("RandomAirport");
+        var response = airportService.create(new AirportCreateRequest("Code", "Nombre", "City"));
+
+        assertThat(response.id()).isNotNull();
+        assertThat(response.code()).isEqualTo("Code");
+        assertThat(response.name()).isEqualTo("Nombre");
+        assertThat(response.city()).isEqualTo("City");
     }
 
     @Test
     void shouldUpdateAirportAndMapToResponse(){
-        when(airportRepository.findById(11L)).thenReturn(Optional.of(Airport.builder().id(11L).code("ZZZ")
-                .name("RandomAirport").city("Malambo").build()));
-        when(airportRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(airportRepository.findById(11L)).thenReturn(
+                Optional.of(Airport.builder().id(11L).code("code")
+                .name("name").city("city").build()));
 
-        var response = airportService.update(11L, new AirportUpdateRequest(null, "NoSeMeOcurreNada"));
+        doAnswer(inv ->{
+            Airport airport = inv.getArgument(0);
+            AirportDtos.AirportUpdateRequest request = inv.getArgument(1);
+            airport.setCode(request.code());
+            airport.setName(request.name());
+            return null;
+        }).when(mapperStruct).patch(any(Airport.class), any(AirportDtos.AirportUpdateRequest.class));
 
-        assertThat(response.id()).isEqualTo(11L);
-        assertThat(response.code()).isEqualTo("ZZZ");
-        assertThat(response.name()).isEqualTo("NoSeMeOcurreNada");
+        when(airportRepository.save(any(Airport.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        when(mapperStruct.toResponse(any(Airport.class))).thenAnswer(inv -> {
+            Airport a = inv.getArgument(0);
+            return new AirportResponse(a.getId(), a.getCode(), a.getName(), a.getCity());
+        });
+
+        var response = airportService.update(1L, new AirportUpdateRequest("code", "name"));
+
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.code()).isEqualTo("code");
+        assertThat(response.name()).isEqualTo("name");
+        assertThat(response.city()).isEqualTo("city");
     }
 
     @Test
     void shouldListCityAirports(){
-        var city = "Soledad";
-        when(airportRepository.findByCity(city)).thenReturn(List.of(Airport.builder().id(11L).code("ZZZ").name("Wipiiii").city(city).build(),
-                Airport.builder().id(12L).code("XXD").name("Imaginacion't").city(city).build(),
-                Airport.builder().id(14L).code("XYZ").name("Aynooo").city(city).build()));
+        when(airportRepository.findAll(Pageable.ofSize(4))).thenReturn(new PageImpl<>(List.of(
+                Airport.builder().id(1L).code("1").name("airport1").city("city1").build(),
+                Airport.builder().id(2L).code("2").name("airport2").city("city2").build(),
+                Airport.builder().id(3L).code("3").name("airport3").city("city3").build(),
+                Airport.builder().id(4L).code("4").name("airport4").city("city4").build()
+        )));
 
-        var response = airportService.getCityList(city);
-        assertThat(response).hasSize(3);
-        assertThat(response).extracting(AirportResponse::city).allMatch(c -> c.equals(city));
-    }
+        when(mapperStruct.toResponse(any(Airport.class))).thenAnswer(inv -> {
+            Airport a = inv.getArgument(0);
+            return new AirportResponse(a.getId(), a.getCode(), a.getName(), a.getCity());
+        });
+
+        var response = airportService.airportList(Pageable.ofSize(4));
+
+        assertThat(response).hasSize(4);
+        assertThat(response).extracting(AirportDtos.AirportResponse::id).containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
+        }
 }

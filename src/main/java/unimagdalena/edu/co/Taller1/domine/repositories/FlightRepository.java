@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import unimagdalena.edu.co.Taller1.domine.entities.Airline;
 import unimagdalena.edu.co.Taller1.domine.entities.Flight;
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -36,4 +37,6 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     """, nativeQuery = true)
     List<Flight> findFlightsWithTheseTags(@Param("tags") Collection<String> tags,
                                           @Param("required") Long required);
+
+    Airline getFlightById(Long id);
 }

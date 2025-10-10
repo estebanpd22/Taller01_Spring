@@ -1,5 +1,6 @@
 package unimagdalena.edu.co.Taller1.services;
 
+import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos;
 import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos.*;
 import unimagdalena.edu.co.Taller1.domine.entities.Airline;
 import unimagdalena.edu.co.Taller1.domine.repositories.AirlineRepository;
@@ -32,9 +33,23 @@ public class AirlineServiceImplTest {
 
     @Test
     void shouldCreateAirlineAndMapToResponse(){
-        when(airlineRepository.save(any())).thenAnswer(inv -> {
+        Airline airlineEntity = Airline.builder()
+                .code("XD")
+                .name("Despegar.com")
+                .build();
+
+        when(mapper.toEntity(any(AirlineCreateRequest.class)))
+                .thenReturn(airlineEntity);
+
+        when(airlineRepository.save(any(Airline.class))).thenAnswer(inv -> {
             Airline a = inv.getArgument(0);
-            a.setId(1L); return a;
+            a.setId(1L);
+            return a;
+        });
+
+        when(mapper.toResponse(any(Airline.class))).thenAnswer(inv -> {
+            Airline a = inv.getArgument(0);
+            return new AirlineResponse(a.getId(), a.getCode(), a.getName());
         });
 
         var response = airlineService.create(new AirlineCreateRequest("XD", "Despegar.com"));
@@ -46,8 +61,24 @@ public class AirlineServiceImplTest {
 
     @Test
     void shouldUpdateAirlineAndMapToResponse(){
-        when(airlineRepository.findById(1L)).thenReturn(Optional.of(Airline.builder().id(1L).code("XD").name("Despegar.com").build()));
-        when(airlineRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(airlineRepository.findById(1L)).thenReturn(
+                Optional.of(Airline.builder().id(1L).code("XD").name("Despegar.com").build())
+        );
+
+        doAnswer(inv -> {
+            Airline airline = inv.getArgument(1);
+            AirlineUpdateRequest request = inv.getArgument(0);
+            airline.setCode(request.code());
+            airline.setName(request.name());
+            return null;
+        }).when(mapper).patch(any(AirlineUpdateRequest.class), any(Airline.class));
+
+        when(airlineRepository.save(any(Airline.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        when(mapper.toResponse(any(Airline.class))).thenAnswer(inv -> {
+            Airline a = inv.getArgument(0);
+            return new AirlineResponse(a.getId(), a.getCode(), a.getName());
+        });
 
         var response = airlineService.update(1L, new AirlineUpdateRequest("XD", "Wingo"));
 
@@ -65,9 +96,15 @@ public class AirlineServiceImplTest {
                 Airline.builder().id(4L).code("VI").name("LATAM Airlines").build()
         )));
 
+        when(mapper.toResponse(any(Airline.class))).thenAnswer(inv -> {
+            Airline a = inv.getArgument(0);
+            return new AirlineResponse(a.getId(), a.getCode(), a.getName());
+        });
+
         var response = airlineService.airlinePageList(Pageable.ofSize(4));
 
         assertThat(response).hasSize(4);
         assertThat(response).extracting(AirlineResponse::id).containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
     }
 }
+

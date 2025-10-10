@@ -29,24 +29,11 @@ public class FlightServiceImpl implements FlightService {
     private final TagRepository tagRepository;
     private final FlightMapperStruct flightMapperStruct;
 
+
     @Override
-    public FlightResponse create(FlightCreateRequest request, @Nonnull Long airline_id, @Nonnull Long origin_airport_id, @Nonnull Long destination_airport_id) {
-        var airline = airlineRepository.findById(airline_id).orElseThrow(
-                () -> new NotFoundException("Airline %d not found.".formatted(airline_id))
-        );
-        var origin_airport = airportRepository.findById(origin_airport_id).orElseThrow(
-                () -> new NotFoundException("Airport %d not found.".formatted(origin_airport_id))
-        );
-        var destination_airport = airportRepository.findById(destination_airport_id).orElseThrow(
-                () -> new NotFoundException("Airport %d not found.".formatted(destination_airport_id))
-        );
-
-        Flight f = flightMapperStruct.toEntity(request);
-        f.setAirline(airline);
-        f.setOrigin(origin_airport);
-        f.setDestination(destination_airport);
-
-        return flightMapperStruct.toResponse(f);
+    public FlightResponse create(FlightCreateRequest request) {
+        var flight = flightMapperStruct.toEntity(request);
+        return flightMapperStruct.toResponse(flightRepository.save(flight));
     }
 
     @Override @Transactional(readOnly = true)
