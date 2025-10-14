@@ -1,8 +1,8 @@
 package unimagdalena.edu.co.Taller1.services;
 
 import unimagdalena.edu.co.Taller1.api.dto.TagDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Tag;
-import unimagdalena.edu.co.Taller1.domine.repositories.TagRepository;
+import unimagdalena.edu.co.Taller1.entities.Tag;
+import unimagdalena.edu.co.Taller1.repositories.TagRepository;
 import unimagdalena.edu.co.Taller1.services.impl.TagServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,62 +11,80 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
-public class TagServiceImplTest {
-    @Mock TagRepository tagRepository;
+class TagServiceImplTest {
 
-    @InjectMocks TagServiceImpl tagService;
+    @Mock
+    private TagRepository tagRepository;
 
+    @InjectMocks
+    private TagServiceImpl tagService;
+
+    // --- CREATE ---
     @Test
-    void shouldCreateTagAndMapToResponse(){
-        when(tagRepository.save(any())).thenAnswer(invocation -> {
-            Tag tag = invocation.getArgument(0);
-            tag.setId(1L); tag.setName("Tag1");
-            return tag;
-        });
+    void shouldcreateTag() {
+        var request = new TagCreateRequest("promo");
+        var savedTag = Tag.builder().id(1L).name("promo").build();
+        when(tagRepository.save(any(Tag.class))).thenReturn(savedTag);
 
-        var response = tagService.create(new TagCreateRequest("Tag1"));
+        var response = tagService.createTag(request);
 
-        assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.name()).isEqualTo("Tag1");
+        assertThat(response.name()).isEqualTo("promo");
+
+        verify(tagRepository).save(any(Tag.class));
     }
 
+    // --- GET ---
     @Test
-    void shouldListAllTags(){
-        when(tagRepository.findAll()).thenReturn(List.of(
-                Tag.builder().id(1L).name("pruebi-tag").build(),
-                Tag.builder().id(2L).name("tag-xd").build(),
-                Tag.builder().id(3L).name("tag-zzz").build(),
-                Tag.builder().id(4L).name("miTag").build()
-        ));
+    void shouldgetTag() {
+        var tag = Tag.builder().id(1L).name("eco").build();
+        when(tagRepository.findById(1L)).thenReturn(Optional.of(tag));
+
+        var response = tagService.getTag(1L);
+
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.name()).isEqualTo("eco");
+    }
+
+    // --- DELETE ---
+    @Test
+    void shouldDeleteTag() {
+        var tag= Tag.builder().id(2L).name("eco").build();
+        when(tagRepository.findById(2L)).thenReturn(Optional.of(tag));
+        tagService.deleteTag(2L);
+
+        verify(tagRepository).delete(tag);
+    }
+
+    // --- LIST ALL ---
+    @Test
+    void listAllTags_success() {
+        var tags = List.of(Tag.builder().id(1L).name("eco").build());
+        when(tagRepository.findAll()).thenReturn(tags);
 
         var response = tagService.listAllTags();
 
-        assertThat(response.size()).isEqualTo(4);
-        assertThat(response.getFirst()).isEqualTo(Tag.builder().id(1L).name("pruebi-tag"));
-        assertThat(response.get(1)).isEqualTo(Tag.builder().id(2L).name("tag-xd"));
-        assertThat(response.get(2)).isEqualTo(Tag.builder().id(3L).name("tag-zzz"));
-        assertThat(response.getLast()).isEqualTo(Tag.builder().id(4L).name("miTag"));
-        }
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).name()).isEqualTo("eco");
+    }
 
+    // --- LIST BY NAME ---
     @Test
-    void shouldListTagsByNameIn(){
-        var tagNames = List.of("pruebi-tag", "miTag");
-        when(tagRepository.findByNameIn(tagNames)).thenReturn(List.of(
-                Tag.builder().id(1L).name("pruebi-tag").build(),
-                Tag.builder().id(4L).name("miTag").build()
-        ));
+    void listTagsByNameIn_success() {
+        var names = List.of("eco", "promo");
+        var tags = List.of(Tag.builder().id(1L).name("eco").build());
+        when(tagRepository.findByNameIn(names)).thenReturn(tags);
 
-        var response = tagService.listTagsByNameIn(tagNames);
+        var response = tagService.listTagsByNameIn(names);
 
-        assertThat(response.size()).isEqualTo(2);
-        assertThat(response.getFirst()).isEqualTo(Tag.builder().id(1L).name("pruebi-tag"));
-        assertThat(response.getLast()).isEqualTo(Tag.builder().id(4L).name("miTag"));
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).name()).isEqualTo("eco");
     }
 }

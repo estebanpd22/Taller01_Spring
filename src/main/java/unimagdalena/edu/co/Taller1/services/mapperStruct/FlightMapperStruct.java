@@ -1,28 +1,39 @@
+/*
 package unimagdalena.edu.co.Taller1.services.mapperStruct;
 
 import org.mapstruct.*;
-import unimagdalena.edu.co.Taller1.api.dto.FlightDtos;
 import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Flight;
-import unimagdalena.edu.co.Taller1.domine.entities.Tag;
-import unimagdalena.edu.co.Taller1.services.mapper.TagMapper;
+import unimagdalena.edu.co.Taller1.entities.Flight;
 
-import javax.crypto.spec.PSource;
-import java.util.Set;
-
-@Mapper(componentModel = "spring", uses = {AirlineMapperStruct.class, AirportMapperStruct.class, TagMapper.class})
+@Mapper(
+        componentModel = "spring",
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface FlightMapperStruct {
 
-    Flight toEntity(FlightCreateRequest request);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "airline", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "bookingItems", ignore = true)
+    @Mapping(target = "seatInventories", ignore = true)
+    Flight toEntity(FlightCreateRequest dto);
 
-    FlightResponse toResponse(Flight flight);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "airline", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "bookingItems", ignore = true)
+    @Mapping(target = "seatInventories", ignore = true)
+    void updateEntity(@MappingTarget Flight entity, FlightUpdateRequest dto);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void patch(@MappingTarget Flight entity, FlightUpdateRequest request);
+    @Mapping(target = "airline", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    FlightResponse toResponse(Flight entity);
 
-    default void addTag(Flight flight, Tag tag) {
-        if (flight == null || tag == null) return;
-        flight.getTags().add(tag);
-        tag.getFlights().add(flight);
-    }
 }
+*/

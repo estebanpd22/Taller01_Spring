@@ -1,27 +1,30 @@
-package unimagdalena.edu.co.Taller1.services.mapperStruct;
+/*package unimagdalena.edu.co.Taller1.services.mapperStruct;
 
 import org.mapstruct.*;
-import unimagdalena.edu.co.Taller1.api.dto.SeatInventoryDtos;
 import unimagdalena.edu.co.Taller1.api.dto.SeatInventoryDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.SeatInventory;
-import unimagdalena.edu.co.Taller1.domine.entities.Cabin;
+import unimagdalena.edu.co.Taller1.entities.Flight;
+import unimagdalena.edu.co.Taller1.entities.SeatInventory;
+import unimagdalena.edu.co.Taller1.entities.Cabin;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+        componentModel = "spring",
+        uses = {FlightMapperStruct.class},
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface SeatInventoryMapperStruct {
 
-    SeatInventory toEntity(SeatInventoryCreateRequest request);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flight", source = "flight")
+    SeatInventory toEntity(SeatInventoryCreateRequest request, Flight flight);
 
-    SeatInventoryResponse toResponse(SeatInventory entity);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flight", source = "flight")
+    void updateEntity(
+            @MappingTarget SeatInventory seatInventory,
+            SeatInventoryUpdateRequest request,
+            Flight flight
+    );
 
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void patch(SeatInventory entity, @MappingTarget SeatInventoryDtos.SeatInventoryUpdateRequest request);
-
-    default String map(Cabin cabin) {
-        return cabin != null ? cabin.name() : null;
-    }
-
-    default Cabin map(String cabin) {
-        return cabin != null ? Cabin.valueOf(cabin.toUpperCase()) : null;
-    }
+    SeatInventoryResponse toResponse(SeatInventory seatInventory);
 }
+*/

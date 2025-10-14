@@ -5,11 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface PassengerService {
-    PassengerResponse create(PassengerCreateRequest request);
-    PassengerResponse getById(Long id);
+    PassengerResponse createPassenger(PassengerCreateRequest passengerCreateRequest);
+    PassengerResponse updatePassenger(Long id,PassengerUpdateRequest passengerUpdateRequest);
+    PassengerResponse get(Long id);
     PassengerResponse getByEmail(String email);
-    PassengerResponse getPassengerWithProfile(String email);
-    PassengerResponse update(Long id, PassengerUpdateRequest request);
+    PassengerResponse getByEmailWithProfile(String email);
     void delete(Long id);
-    Page<PassengerResponse> listAllPassengers(Pageable pageable);
 }

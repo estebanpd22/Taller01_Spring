@@ -28,7 +28,7 @@ public class AirlineController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AirlineDtos.AirlineResponse> get(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getById(id));
+        return ResponseEntity.ok(service.get(id));
     }
 
     @GetMapping("/by-code")

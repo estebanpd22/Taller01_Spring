@@ -1,9 +1,10 @@
 package unimagdalena.edu.co.Taller1.services;
 
+import unimagdalena.edu.co.Taller1.api.dto.PassengerDtos;
 import unimagdalena.edu.co.Taller1.api.dto.PassengerDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Passenger;
-import unimagdalena.edu.co.Taller1.domine.entities.PassengerProfile;
-import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
+import unimagdalena.edu.co.Taller1.entities.Passenger;
+import unimagdalena.edu.co.Taller1.entities.PassengerProfile;
+import unimagdalena.edu.co.Taller1.repositories.PassengerRepository;
 import unimagdalena.edu.co.Taller1.services.impl.PassengerServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,75 +23,39 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class PassengerServiceImplTest {
     @Mock
-    private PassengerRepository passengerRepository;
-
+    PassengerRepository repository;
     @InjectMocks
-    private PassengerServiceImpl passengerService;
+    PassengerServiceImpl service;
 
     @Test
-    void shouldCreatePassengerAndMapToResponse(){
-        when(passengerRepository.save(any())).thenAnswer(i -> {
-            Passenger p = i.getArgument(0);
-            p.setId(1L);
+    void shouldCreatePassengerAndReturnPassengerResponse() {
+        var request = new PassengerCreateRequest("Sehuanes Carlito","sehuanesemarika@gmail.com",new PassengerDtos.PassengerProfileDto("300554","57"));
+        when(repository.save(any(Passenger.class))).thenAnswer(inv -> {
+            Passenger p = inv.getArgument(0);
+            p.setId(11L);
             return p;
         });
 
-        var response =  passengerService.create(new PassengerCreateRequest("Elton Tito ElBambino",
-                "theBambino69@example.com", new PassengerProfileDto("3334445555", "+58")));
+        var response= service.createPassenger(request);
 
-        assertThat(response).isNotNull(); assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.fullName()).isEqualTo("Elton Tito ElBambino");
-        assertThat(response.email()).isEqualTo("theBambino69@example.com");
-        assertThat(response.profileDto().phone()).isEqualTo("3334445555");
-        assertThat(response.profileDto().countryCode()).isEqualTo("+58");
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(11L);
+        assertThat(response.email()).isEqualTo("sehuanesemarika@gmail.com");
+        verify(repository).save(any(Passenger.class));
     }
 
     @Test
-    void shouldUpdatePassengerAndMapToResponse(){
-        var passenger = Optional.of(Passenger.builder().id(1L).fullName("Neymar Pelé")
-                .email("ney.Pele10@example.com").build());
-        when(passengerRepository.findById(1L)).thenReturn(passenger);
-        when(passengerRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    void shouldUpdatePassengerAndReturnPassengerResponse() {
+        var entity = Passenger.builder().id(8L).fullName("Esteban").email("estebancamilop22@gmail.com")
+                .profile(PassengerProfile.builder().countryCode("1").phone("3332288915").build()).build();
+        when(repository.findById(8L)).thenReturn(Optional.of(entity));
+        when(repository.save(any(Passenger.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var response = passengerService.update(1L, new PassengerUpdateRequest(null,
-                "ney_gotoso10.pele@example.com", new PassengerProfileDto("3134792025", "+57")));
+        var passengerUpdateRequest = new PassengerUpdateRequest("Esteban", "puellito22@gmail.com",new PassengerDtos.PassengerProfileDto("300554","57"));
 
-        assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.fullName()).isEqualTo("Neymar Pelé");
-        assertThat(response.email()).isEqualTo("ney_gotoso10.pele@example.com");
-    }
+        var passengerUpdateResponse= service.updatePassenger(8L,passengerUpdateRequest);
 
-    @Test
-    void shouldGetPassengerWithProfile(){
-        var email = "jChan.007@example.com";
-        var passenger_profile = PassengerProfile.builder().id(1001L).phone("3130092025").countryCode("+57").build();
-        when(passengerRepository.fetchWithProfileByEmail(email)).thenReturn(Optional.of(
-                Passenger.builder().id(1L).fullName("Jackie Chan ConChan").email(email)
-                        .profile(passenger_profile).build()
-        ));
-
-        var response = passengerService.getPassengerWithProfile(email);
-
-        assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.fullName()).isEqualTo("Jackie Chan ConChan");
-        assertThat(response.email()).isEqualTo(email);
-        assertThat(response.profileDto().phone()).isEqualTo("3130092025");
-    }
-
-    @Test
-    void shouldListAllPassengers(){
-        when(passengerRepository.findAll(Pageable.ofSize(4))).thenReturn(new PageImpl<>(List.of(
-                Passenger.builder().id(1L).fullName("Zacarias Blanco Del Fierro").email("zacablanco_fierro@example.com").build(),
-                Passenger.builder().id(2L).fullName("Elena Nito Del Bosque").email("elena_nito69@example.com").build(),
-                Passenger.builder().id(3L).fullName("Jackie Sieras Plata").email("jackie_sieras777@example.com").build(),
-                Passenger.builder().id(4L).fullName("Messi Ronaldo").email("messironaldo.10_7@example.com").build()
-        )));
-
-        var response = passengerService.listAllPassengers(Pageable.ofSize(4));
-
-        assertThat(response).hasSize(4);
-        assertThat(response).extracting(PassengerResponse::email).containsExactly(
-                "zacablanco_fierro@example.com", "elena_nito69@example.com", "jackie_sieras777@example.com", "messironaldo.10_7@example.com"
-        );
+        assertThat(passengerUpdateResponse.fullname()).isEqualTo("Esteban");
+        assertThat(passengerUpdateResponse.profileDto().countryCode()).isEqualTo("57");
     }
 }

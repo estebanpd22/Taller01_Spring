@@ -15,7 +15,7 @@ public class BookingItemController {
     public ResponseEntity<BookingItemResponse> create(@PathVariable Long bookingId,
                                                                       @Valid @RequestBody BookingItemCreateRequest request,
                                                                       UriComponentsBuilder uriBuilder){
-        var body = service.create(bookingId, request);
+        var body = service.createBookingItem(bookingId, request);
         var location = uriBuilder.path("/api/bookings/{bookingId}/items/{itemId}").
                 buildAndExpand(bookingId,body.id()).toUri();
         return ResponseEntity.created(location).body(body);

@@ -1,65 +1,90 @@
 package unimagdalena.edu.co.Taller1.services.impl;
 
 import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.AirlineRepository;
+import unimagdalena.edu.co.Taller1.entities.Airline;
+import unimagdalena.edu.co.Taller1.repositories.AirlineRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.AirlineService;
-import unimagdalena.edu.co.Taller1.services.mapper.AirlineMapper;
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.AirlineMapperStruct;
+import unimagdalena.edu.co.Taller1.services.mapper.AirlineMapper;
 
-import java.util.List;
 
 @Service @Transactional @RequiredArgsConstructor
 public class AirlineServiceImpl implements AirlineService {
+
     private final AirlineRepository airlineRepository;
-    private final AirlineMapperStruct airlineMapper;
+
+    private final AirlineMapper airlineMapper;
+
     @Override
     public AirlineResponse create(AirlineCreateRequest request) {
-        var airline = airlineMapper.toEntity(request);
-        return airlineMapper.toResponse(airlineRepository.save(airline));
-    }
+        String code = request.code().trim().toUpperCase();
 
-    @Override @Transactional(readOnly = true)
-    public AirlineResponse getById(@Nonnull Long id) {
-        return airlineRepository.findById(id).map(airlineMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
-    }
+        airlineRepository.findByCodeIgnoreCase(code).ifPresent(a -> {
+            throw new IllegalStateException("Airline code already exists: " + code);
+        });
 
-    @Override @Transactional(readOnly = true)
-    public AirlineResponse getByCode(@Nonnull String code) {
-        return airlineRepository.findByCodeIgnoreCase(code).map(airlineMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("Airline with code %s not found.".formatted(code)));
+        Airline toSave = AirlineMapper.toEntity(request);
+        toSave.setCode(code);
+
+        Airline saved = airlineRepository.save(toSave);
+        return AirlineMapper.toResponse(saved);
     }
 
     @Override
-    public AirlineResponse update(@Nonnull Long id, AirlineUpdateRequest request) {
-        var airline = airlineRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
-
-        airlineMapper.patch(request, airline);
-        return airlineMapper.toResponse(airlineRepository.save(airline));
-        //static void patch(Airline airline, AirlineUpdateRequest request) {
-        //    }
+    public AirlineResponse get(Long id) {
+        Airline airline = airlineRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Airline not found: id=" + id));
+        return AirlineMapper.toResponse(airline);
     }
 
     @Override
-    public void delete(@Nonnull Long id) {
+    public AirlineResponse getByCode(String rawCode) {
+        String code = rawCode.trim().toUpperCase();
+        Airline airline = airlineRepository.findByCodeIgnoreCase(code)
+                .orElseThrow(() -> new NotFoundException("Airline not found: code=" + code));
+        return AirlineMapper.toResponse(airline);
+    }
+
+    @Override
+    public AirlineResponse update(Long id, AirlineUpdateRequest request) {
+        Airline airline = airlineRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Airline not found: id=" + id));
+
+        String newCode = request.code() == null ? null : request.code().trim().toUpperCase();
+        if (newCode == null || newCode.isBlank()) {
+            throw new IllegalArgumentException("Airline code cannot be blank");
+        }
+
+        if (!airline.getCode().equalsIgnoreCase(newCode)) {
+            airlineRepository.findByCodeIgnoreCase(newCode).ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new IllegalStateException("Airline code already exists: " + newCode);
+                }
+            });
+        }
+
+        airline.setCode(newCode);
+        airline.setName(request.name());
+
+        Airline updated = airlineRepository.save(airline);
+
+        return AirlineMapper.toResponse(updated);
+    }
+
+    @Override
+    public void delete(Long id) {
+        if (!airlineRepository.existsById(id)) {
+            throw new NotFoundException("Airline not found: id=" + id);
+        }
         airlineRepository.deleteById(id);
     }
 
-    @Override @Transactional(readOnly = true)
-    public List<AirlineResponse> airlineList() {
-        return airlineRepository.findAll().stream().map(airlineMapper::toResponse).toList();
-    }
-
-    @Override @Transactional(readOnly = true)
-    public Page<AirlineResponse> airlinePageList(Pageable pageable) {
-        return airlineRepository.findAll(pageable).map(airlineMapper::toResponse);
+    // ==== Helpers ====
+    private boolean equalsIgnoreCaseSafe(String a, String b) {
+        if (a == null) return b == null;
+        return a.equalsIgnoreCase(b);
     }
 }

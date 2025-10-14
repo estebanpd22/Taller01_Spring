@@ -1,10 +1,13 @@
 package unimagdalena.edu.co.Taller1.services;
 
+import org.springframework.data.domain.PageRequest;
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.BookingRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
+import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos;
+import unimagdalena.edu.co.Taller1.entities.*;
+import unimagdalena.edu.co.Taller1.repositories.BookingRepository;
+import unimagdalena.edu.co.Taller1.repositories.FlightRepository;
+import unimagdalena.edu.co.Taller1.repositories.PassengerRepository;
+import unimagdalena.edu.co.Taller1.repositories.SeatInventoryRepository;
 import unimagdalena.edu.co.Taller1.services.impl.BookingServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,12 +15,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingMapperStruct;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -27,143 +30,136 @@ import static org.mockito.Mockito.*;
 public class BookingServiceImplTest {
 
     @Mock
-    BookingRepository bookingRepository;
-
+    private BookingRepository bookingRepository;
     @Mock
-    PassengerRepository passengerRepository;
-
+    private PassengerRepository passengerRepository;
     @Mock
-    FlightRepository flightRepository;
-
+    private FlightRepository flightRepository;
     @Mock
-    BookingMapperStruct bookingMapperStruct;
-
+    private SeatInventoryRepository seatInventoryRepository;
     @InjectMocks
-    BookingServiceImpl bookingService;
-
-
-
+    private BookingServiceImpl bookingService;
     @Test
-    void shouldCreateBookingAndMapToResponse(){
-        when(passengerRepository.findById(1L)).thenReturn(Optional.of(Passenger.builder().id(1L)
-                .fullName("Lionel Messi").email("messi.10GOAT@example.com").build()));
-        when(bookingRepository.save(any())).thenAnswer(inv -> {
-            Booking b = inv.getArgument(0); b.setId(101L); return b;
+    void shouldCreateBooking(){
+        when(passengerRepository.findById(1L)).thenReturn(Optional.of(Passenger.builder().id(1L).fullName("Joselo").email("jo@gmail.com").build()));
+        when(bookingRepository.save(any())).thenAnswer(i -> {
+            Booking booking = i.getArgument(0); booking.setId(11L); return booking;
+        });
+        Airline airline = Airline.builder().id(23L).code("233").name("Avianca").build();
+        Airport dorado = Airport.builder().id(21L).name("dorado").build();
+        Airport nevado = Airport.builder().id(22L).name("nevado").build();
+
+        var flight =  Flight.builder().id(34L).number("455A").airline(airline).origin(dorado).destination(nevado).build();
+        when(flightRepository.findAllById(any())).thenAnswer(invocation -> {
+            List<Long> ids = invocation.getArgument(0);
+            return ids.stream()
+                    .map(id -> {
+                        if (id.equals(34L)) return flight;
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
         });
 
-        var response = bookingService.create(new BookingCreateRequest(1L));
 
-        assertThat(response.id()).isEqualTo(101L);
-        assertThat(response.passenger_name()).isEqualTo("Lionel Messi");
-        assertThat(response.passenger_email()).isEqualTo("messi.10GOAT@example.com");
-    }
+        when(seatInventoryRepository.decrementAvailableSeats(anyLong(), any(), anyInt()))
+                .thenReturn(1);
 
-    @Test
-    void shouldUpdateBookingAndMapToResponse(){
-        var passenger = Optional.of(Passenger.builder().id(1L).fullName("Susana Horia Seca")
-                .email("susana.horia44@example.com").build());
-        var new_passenger = Optional.of(Passenger.builder().id(2L).fullName("Adolfo Jose Hitler Moreno")
-                .email("hitlermoreno@example.com").build());
-        when(bookingRepository.findById(101L)).thenReturn(Optional.of(Booking.builder().id(101L)
-                .createdAt(OffsetDateTime.now().minusDays(1)).passenger(passenger.get()).build()));
-        when(passengerRepository.findById(2L)).thenReturn(new_passenger);
-        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        List<BookingItemDtos.BookingItemCreateRequest> bookingItems = List.of(
+                new BookingItemDtos.BookingItemCreateRequest(new BigDecimal(344), 2, Cabin.BUSINESS, 34L));
 
-        var response = bookingService.update(101L, 2L);
+        var bookingResponse = bookingService.createBooking(new BookingCreateRequest(OffsetDateTime.now(),1L,bookingItems));
 
-        assertThat(response.id()).isEqualTo(101L);
-        assertThat(response.passenger_name()).isEqualTo("Adolfo Jose Hitler Moreno");
-        assertThat(response.passenger_email()).isEqualTo("hitlermoreno@example.com");
+        assertThat(bookingResponse).isNotNull();
+        assertThat(bookingResponse.id()).isEqualTo(11L);
+        assertThat(bookingResponse.passengerDto().fullname()).isEqualTo("Esteban");
 
     }
-
     @Test
-    void shouldListBookingsCreatedBetweenDates(){
-        var now = OffsetDateTime.now();
-        when(bookingRepository.findByCreatedAtBetween(now.minusDays(1), now)).thenReturn(List.of(
-                Booking.builder().id(1L).createdAt(now.minusHours(12)).build(),
-                Booking.builder().id(2L).createdAt(now.minusHours(23)).build(),
-                Booking.builder().id(3L).createdAt(now.minusMinutes(5)).build()
-        ));
-
-        var response = bookingService.listBookingsCreatedBetweenDates(now.minusDays(1), now);
-
-        assertThat(response).hasSize(3);
-        assertThat(response).allSatisfy(booking -> assertThat(booking.createdAt())
-                .isBetween(now.minusDays(1), now.minusMinutes(5)));
-    }
-
-    @Test
-    void shouldListBookingsByPassengerEmailAndOrderedByRecentlyCreation(){
-        var now = OffsetDateTime.now(); var passenger = Optional.of(Passenger.builder().id(1L)
-                .fullName("Cristiano Penaldo").email("elcomediante07@example.com").build());
-        when(bookingRepository.findByPassenger_EmailIgnoreCaseOrderByCreatedAtDesc(passenger.get().getEmail(),
-                Pageable.unpaged())).thenReturn(new PageImpl<>(
-                List.of(Booking.builder().id(3L).createdAt(now.minusMinutes(5)).passenger(passenger.get()).build(),
-                        Booking.builder().id(1L).createdAt(now.minusHours(12)).passenger(passenger.get()).build(),
-                        Booking.builder().id(2L).createdAt(now.minusHours(23)).passenger(passenger.get()).build()
-                )
-        ));
-
-        var response = bookingService.listBookingsByPassengerEmailAndOrderedMostRecently(passenger.get().getEmail(),
-                Pageable.unpaged());
-
-        assertThat(response).hasSize(3);
-        assertThat(response).extracting(BookingResponse::passenger_email)
-                .allMatch(email -> email.equals("elcomediante07@example.com"));
-    }
-    @Test
-    void shouldFetchBookingWithItemsAndPassenger() {
-        // Arrange - crear Passenger
+    void shouldUpdateBooking() {
+        // given
         Passenger passenger = Passenger.builder()
-                .fullName("Carlos Sehuanes")
-                .email("carlos@example.com")
+                .id(1L)
+                .fullName("Esteban")
+                .email("puello@gmail.com")
                 .build();
-        passenger = passengerRepository.save(passenger);
-
-        Airline airline = Airline.builder().name("Avianca").code("AV").build();
-        Airport origin = Airport.builder().code("SMR").name("Santa Marta").city("Santa Marta").build();
-        Airport destination = Airport.builder().code("BOG").name("El Dorado").city("Bogotá").build();
 
         Flight flight = Flight.builder()
-                .number("AV123")
-                .departureTime(OffsetDateTime.now())
-                .arrivalTime(OffsetDateTime.now().plusHours(1))
-                .airline(airline)
-                .origin(origin)
-                .destination(destination)
+                .id(34L)
+                .number("455A")
                 .build();
-        flight = flightRepository.save(flight);
 
-        Booking booking = Booking.builder()
-                .createdAt(OffsetDateTime.now())
+        Booking existingBooking = Booking.builder()
+                .id(11L)
                 .passenger(passenger)
+                .items(new ArrayList<>())
+                .createdAt(OffsetDateTime.now().minusDays(1))
                 .build();
 
-        BookingItem item = BookingItem.builder()
-                .cabin(Cabin.ECONOMY)
-                .price(BigDecimal.valueOf(150.00))
-                .segmentOrder(1)
-                .flight(flight)
-                .booking(booking)
+        when(passengerRepository.findById(1L)).thenReturn(Optional.of(passenger));
+
+        when(bookingRepository.findById(11L)).thenReturn(Optional.of(existingBooking));
+
+        when(bookingRepository.save(any())).thenAnswer(inv -> {
+            Booking b = inv.getArgument(0);
+            return b;
+        });
+
+        // Construir request con cambios
+        List<BookingItemDtos.BookingItemUpdateRequest> updatedItems = List.of(
+                new BookingItemDtos.BookingItemUpdateRequest( new BigDecimal("500"), 2, Cabin.BUSINESS, 34L)
+        );
+
+        BookingUpdateRequest updateRequest = new BookingUpdateRequest(
+                1L
+        );
+
+        // Act
+        BookingResponse response = bookingService.updateBooking(11L, updateRequest);
+
+        // Assert
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(11L);
+        assertThat(response.passengerDto().fullname()).isEqualTo("Esteban");
+    }
+
+    @Test
+    void shouldFindBookingsByPassengerEmail() {
+        // Arrange
+        Passenger passenger = Passenger.builder()
+                .id(1L)
+                .fullName("Esteban")
+                .email("puello@gmail.com")
                 .build();
 
-        bookingMapperStruct.addItem(item, booking);
+        Booking booking1 = Booking.builder()
+                .id(11L)
+                .passenger(passenger)
+                .createdAt(OffsetDateTime.now())
+                .items(new ArrayList<>())
+                .build();
 
-        booking = bookingRepository.save(booking);
+        Booking booking2 = Booking.builder()
+                .id(12L)
+                .passenger(passenger)
+                .createdAt(OffsetDateTime.now())
+                .items(new ArrayList<>())
+                .build();
 
-        Optional<Booking> resultOpt = bookingRepository.fetchGraphById(booking.getId());
+        // Mock: cuando el repositorio busque por email, devuelve estos bookings
+        when(bookingRepository.findByPassenger_EmailIgnoreCaseOrderByCreatedAtDesc(
+                "puello@gmail.com", PageRequest.ofSize(10)))
+                .thenReturn(new PageImpl<>(List.of(booking1, booking2)));
 
-        assertThat(resultOpt).isPresent();
-        Booking result = resultOpt.get();
+        // Act
+        List<BookingResponse> responses =
+                bookingService.finBookingByPassengerEmail("puello@gmail.com");
 
-        assertThat(result.getPassenger()).isNotNull();
-        assertThat(result.getPassenger().getEmail()).isEqualTo("carlos@example.com");
-
-        assertThat(result.getItems()).hasSize(1);
-        BookingItem loadedItem = result.getItems().getFirst();
-
-        assertThat(loadedItem.getFlight()).isNotNull();
-        assertThat(loadedItem.getFlight().getNumber()).isEqualTo("AV123");
+        // Assert
+        assertThat(responses).isNotNull();
+        assertThat(responses).hasSize(2);
+        assertThat(responses.get(0).id()).isEqualTo(11L);
+        assertThat(responses.get(1).id()).isEqualTo(12L);
+        assertThat(responses.get(0).passengerDto().email()).isEqualTo("puello@gmail.com");
     }
 }

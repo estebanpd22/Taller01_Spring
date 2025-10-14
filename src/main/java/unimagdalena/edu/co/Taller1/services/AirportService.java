@@ -8,10 +8,8 @@ import java.util.List;
 
 public interface AirportService {
     AirportResponse create(AirportCreateRequest request);
-    AirportResponse getById(Long id);
+    AirportResponse  get(Long id);
     AirportResponse getByCode(String code);
-    List<AirportResponse> getCityList(String city);
-    AirportResponse update(Long id, AirportUpdateRequest request);
+    AirportResponse  update(Long id, AirportUpdateRequest request);
     void delete(Long id);
-    Page<AirportResponse> airportList(Pageable pageable);
 }

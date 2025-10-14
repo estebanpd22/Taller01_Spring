@@ -1,63 +1,84 @@
 package unimagdalena.edu.co.Taller1.services.impl;
 
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import unimagdalena.edu.co.Taller1.api.dto.AirportDtos.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.AirportRepository;
+import unimagdalena.edu.co.Taller1.entities.Airport;
+import unimagdalena.edu.co.Taller1.repositories.AirportRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.AirportService;
 import unimagdalena.edu.co.Taller1.services.mapper.AirportMapper;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.AirportMapperStruct;
 
-import java.util.List;
-
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class AirportServiceImpl implements AirportService {
+
     private final AirportRepository airportRepository;
-    private final AirportMapperStruct airportMapperStruct;
+
     @Override
     public AirportResponse create(AirportCreateRequest request) {
-        var airport = airportMapperStruct.toEntity(request);
-        return airportMapperStruct.toResponse(airportRepository.save(airport));
-    }
+        String code = request.code().trim().toUpperCase();
 
-    @Override @Transactional(readOnly = true)
-    public AirportResponse getById(@Nonnull Long id) {
-        return airportRepository.findById(id).map(airportMapperStruct::toResponse)
-                .orElseThrow(() -> new NotFoundException("Airport %d not found.".formatted(id)));
-    }
+        airportRepository.findByCodeIgnoreCase(code).ifPresent(a -> {
+            throw new IllegalStateException("Airport code already exists: " + code);
+        });
 
-    @Override @Transactional(readOnly = true)
-    public AirportResponse getByCode(@Nonnull String code) {
-        return airportRepository.findByCodeIgnoreCase(code).map(airportMapperStruct::toResponse)
-                .orElseThrow(() -> new NotFoundException("Airport with code %s not found.".formatted(code)));
-    }
+        Airport toSave = AirportMapper.toEntity(request);
+        toSave.setCode(code);
 
-    @Override @Transactional(readOnly = true)
-    public List<AirportResponse> getCityList(@Nonnull String city) {
-        return airportRepository.findByCity(city).stream().map(airportMapperStruct::toResponse).toList();
+        Airport saved = airportRepository.save(toSave);
+        return AirportMapper.toResponse(saved);
     }
 
     @Override
-    public AirportResponse update(@Nonnull Long id, AirportUpdateRequest request) {
-        var airport = airportRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Airport %d not found.".formatted(id)));
-        airportMapperStruct.patch(airport, request);
-        return airportMapperStruct.toResponse(airportRepository.save(airport));
+    public AirportResponse get(Long id) {
+        Airport airport = airportRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Airport not found: id=" + id));
+        return AirportMapper.toResponse(airport);
     }
 
     @Override
-    public void delete(@Nonnull Long id) {
+    public AirportResponse getByCode(String rawCode) {
+        String code = rawCode.trim().toUpperCase();
+        Airport airport = airportRepository.findByCodeIgnoreCase(code)
+                .orElseThrow(() -> new NotFoundException("Airport not found: code=" + code));
+        return AirportMapper.toResponse(airport);
+    }
+
+    @Override
+    public AirportResponse update(Long id, AirportUpdateRequest request) {
+        Airport airport = airportRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Airport not found: id=" + id));
+
+        String newCode = request.code() == null ? null : request.code().trim().toUpperCase();
+        if (newCode == null || newCode.isBlank()) {
+            throw new IllegalArgumentException("Airport code cannot be blank");
+        }
+
+        if (!airport.getCode().equalsIgnoreCase(newCode)) {
+            airportRepository.findByCodeIgnoreCase(newCode).ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new IllegalStateException("Airport code already exists: " + newCode);
+                }
+            });
+        }
+
+        airport.setCode(newCode);
+        airport.setName(request.name());
+        airport.setCity(request.city());
+
+        Airport updated = airportRepository.save(airport);
+
+        return AirportMapper.toResponse(updated);
+    }
+
+    @Override
+    public void delete(Long id) {
+        if (!airportRepository.existsById(id)) {
+            throw new NotFoundException("Airport not found: id=" + id);
+        }
         airportRepository.deleteById(id);
-    }
-
-    @Override @Transactional(readOnly = true)
-    public Page<AirportResponse> airportList(Pageable pageable) {
-        return airportRepository.findAll(pageable).map(airportMapperStruct::toResponse);
     }
 }

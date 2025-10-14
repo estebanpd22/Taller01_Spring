@@ -6,11 +6,9 @@ import java.util.Collection;
 import java.util.List;
 
 public interface TagService {
-    //Basic CRUD
-    TagResponse create(TagCreateRequest request);
-    TagResponse getById(Long id);
-    void delete(Long id);
+    TagResponse createTag(TagCreateRequest request);
+    TagResponse getTag(Long id);
+    void deleteTag(Long id);
     List<TagResponse> listAllTags();
-    //------------------------------------//
-    List<TagResponse> listTagsByNameIn(Collection<String> names);
+    List<TagResponse> listTagsByNameIn(List<String> names);
 }

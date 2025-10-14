@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public interface FlightService {
 
@@ -12,18 +13,20 @@ public interface FlightService {
 
     FlightResponse getById(Long id);
 
-    FlightResponse update(FlightUpdateRequest request, Long id);
+    List<FlightResponse> getAll();
+
+    FlightResponse update(Long id, FlightUpdateRequest request);
 
     void delete(Long id);
 
-    //--------------------------------------------------------//
-    //This method looks for flights by departureTime between two dates, and also, with an origin and destination (both can be optional).
-    Page<FlightResponse> listScheduledFlights(Long origin_airport_id, Long destination_airport_id, OffsetDateTime from, OffsetDateTime to, Pageable pageable);
+    Page<FlightResponse> findByAirlineName(String airlineName, Pageable pageable);
 
-    FlightResponse addTagToFlight(Long flight_id, Long tag_id);
-
-    FlightResponse removeTagFromFlight(Long flight_id, Long tag_id);
-
-    Page<FlightResponse> listFlightsByAirline(Long airline_id, Pageable pageable);
+    Page<FlightResponse> searchFlights(
+            String originCode,
+            String destinationCode,
+            OffsetDateTime from,
+            OffsetDateTime to,
+            Pageable pageable
+    );
 }
 

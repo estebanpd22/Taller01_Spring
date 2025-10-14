@@ -1,18 +1,12 @@
 package unimagdalena.edu.co.Taller1.api.controllers;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
 import unimagdalena.edu.co.Taller1.services.FlightService;
 
-import java.time.OffsetDateTime;
-import java.util.List;
 
 public class FlightController {
     private FlightService service;
@@ -37,7 +31,7 @@ public class FlightController {
     public ResponseEntity<FlightResponse> update(@PathVariable Long id,
                                                             @Valid @RequestBody FlightUpdateRequest request) {
 
-        return ResponseEntity.ok(service.update(request, id));
+        return ResponseEntity.ok(service.update(id, request));
     }
 
     @DeleteMapping("/{id}")

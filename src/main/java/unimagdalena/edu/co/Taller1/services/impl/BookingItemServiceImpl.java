@@ -1,112 +1,89 @@
 package unimagdalena.edu.co.Taller1.services.impl;
 
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.BookingItem;
-import unimagdalena.edu.co.Taller1.domine.entities.Cabin;
-import unimagdalena.edu.co.Taller1.domine.repositories.BookingItemRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.BookingRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.SeatInventoryRepository;
+import unimagdalena.edu.co.Taller1.entities.*;
+import unimagdalena.edu.co.Taller1.repositories.BookingItemRepository;
+import unimagdalena.edu.co.Taller1.repositories.BookingRepository;
+import unimagdalena.edu.co.Taller1.repositories.FlightRepository;
+import unimagdalena.edu.co.Taller1.repositories.SeatInventoryRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.BookingItemService;
-import unimagdalena.edu.co.Taller1.api.dto.BookingDtos.*;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.BookingItemMapperStruct;
+import unimagdalena.edu.co.Taller1.services.mapper.BookingItemMapper;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
-public class BookingItemServiceImpl implements BookingItemService {
+public class BookingItemServiceImpl  implements BookingItemService {
+
     private final BookingItemRepository bookingItemRepository;
-    private final FlightRepository flightRepository;
     private final BookingRepository bookingRepository;
-    private final BookingItemMapperStruct mapper;
+    private final FlightRepository flightRepository;
     private final SeatInventoryRepository seatInventoryRepository;
+    private final BookingItemMapper bookingItemMapper;
 
     @Override
-    public BookingItemResponse create(Long bookingId, BookingItemCreateRequest request) {
-        var booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Booking not found"));
-        var flight = flightRepository.findById(request.flightId()).orElseThrow(() -> new NotFoundException("Flight not found"));
-        var seats = seatInventoryRepository.findByFlight_IdAndCabin(request.flightId(), Cabin.valueOf(request.cabin())).orElseThrow(() -> new NotFoundException("Seats not found"));
+    public BookingItemResponse createBookingItem(Long bookingId, BookingItemCreateRequest request) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new NotFoundException("Booking not found"));
 
-        if (seats.getAvailableSeats() <1){
+        Flight flight = flightRepository.findById(request.flighId()).orElseThrow(() -> new NotFoundException("Flight not found"));
+
+        //reservando asiento
+        SeatInventory inventory = seatInventoryRepository.findByFlight_IdAndCabin(flight.getId(), request.cabin()).orElseThrow(() -> new NotFoundException("Seat inventory not found"));
+        if (inventory.getAvailableSeats() <1){
             throw new IllegalStateException("Not enough seats available");
         }
-        seats.setAvailableSeats(seats.getAvailableSeats() - 1);
-        seatInventoryRepository.save(seats);
+        inventory.setAvailableSeats(inventory.getAvailableSeats() - 1);
+        seatInventoryRepository.save(inventory);
 
         //creando bookingItem
-        BookingItem bookingItem = mapper.toEntity(request);
+        BookingItem bookingItem = BookingItemMapper.toEntity(request,flight);
         bookingItem.setBooking(booking);
 
         BookingItem bookingItemSaved = bookingItemRepository.save(bookingItem);
-        return  mapper.toItemResponse(bookingItemSaved);
+        return  bookingItemMapper.toResponse(bookingItemSaved);
+
     }
 
     @Override
-    public BookingItemResponse addBookingItem(@Nonnull Long booking_id, @Nonnull Long flight_id, BookingItemCreateRequest request) {
-        var flight =  flightRepository.findById(flight_id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(flight_id)));
-        var booking = bookingRepository.findById(booking_id).orElseThrow(
-                () -> new NotFoundException("Booking %d not found".formatted(booking_id))
-        );
+    public BookingItemResponse updateBookingItem(Long id,BookingItemUpdateRequest request) {
 
-        var bookingItem = BookingItem.builder().cabin(Cabin.valueOf(request.cabin())).price(request.price()).segmentOrder(request.segmentOrder())
-                .flight(flight).booking(booking).build();
+        BookingItem bookingItem = bookingItemRepository.findById(id).orElseThrow(() -> new NotFoundException("Booking not found"));
 
-        return mapper.toItemResponse(bookingItem);
-    }
+        Flight flight= new Flight();
+        if (request != null){
+            flight= flightRepository.findById(request.flight_id()).orElseThrow(() -> new NotFoundException("Flight not found"));}
 
-    @Override @Transactional(readOnly = true)
-    public BookingItemResponse getBookingItemById(@Nonnull Long id) {
-        return bookingItemRepository.findById(id).map(mapper::toItemResponse).orElseThrow(
-                () -> new NotFoundException("Booking Item %d not found".formatted(id))
-        );
+        BookingItemMapper.updateEntity(bookingItem,request,flight);
+        BookingItem bookingItemUpdate = bookingItemRepository.save(bookingItem);
+
+        return BookingItemMapper.toResponse(bookingItemUpdate);
     }
 
     @Override
-    public BookingItemResponse updateBookingItem(@Nonnull Long id, BookingItemUpdateRequest request) {
-        var bookingItem = bookingItemRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Booking Item %d not found".formatted(id))
-        );
-        mapper.itemPatch(request, bookingItem);
+    public BookingItemResponse deleteBookingItem(long id) {
+        BookingItem bookingItem =  bookingItemRepository.findById(id).orElseThrow(() -> new NotFoundException("Booking not found"));
 
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found".formatted(flight_id))
-        );
-        bookingItem.setFlight(flight);
-        mapper.itemPatch(request, );
-        return mapper.toItemResponse(bookingItem);
+        SeatInventory inventory = seatInventoryRepository.findByFlight_IdAndCabin(bookingItem.getFlight().getId(), bookingItem.getCabin()).orElseThrow(() -> new NotFoundException("Seat inventory not found"));
+
+        inventory.setAvailableSeats(inventory.getAvailableSeats() - 1);
+        seatInventoryRepository.save(inventory);
+
+        bookingItemRepository.delete(bookingItem);
+
+        return BookingItemMapper.toResponse(bookingItem);
     }
 
     @Override
-    public void deleteBookingItem(@Nonnull Long id) {
-        bookingItemRepository.deleteById(id);
-    }
-
-    @Override
-    public List<BookingItemResponse> listBookingItemsByBooking(Long booking_id) {
-        return List.of();
-    }
-
-
-    @Override @Transactional(readOnly = true)
-    public Long countReservedSeatsByFlightAndCabin(@Nonnull Long flight_id, String cabin) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found".formatted(flight_id))
-        );
-        return bookingItemRepository.countSeatsByFlightAndCabin(flight.getId(), Cabin.valueOf(cabin));
-    }
-
-    @Override @Transactional(readOnly = true)
-    public BigDecimal calculateTotalPriceByBooking(@Nonnull Long booking_id) {
-        var booking = bookingRepository.findById(booking_id).orElseThrow(
-                () -> new NotFoundException("Booking %d not found".formatted(booking_id))
-        );
-        return bookingItemRepository.calculateTotalPrice(booking.getId());
+    public List<BookingItemResponse> findItemsByBooking(Long bookingId) {
+        List<BookingItem> bookingItems = bookingItemRepository.findByBooking_IdOrderBySegmentOrder(bookingId);
+        if (bookingItems.isEmpty()){
+            throw new NotFoundException("Not items found for this booking");
+        }
+        return bookingItems.stream().map(BookingItemMapper::toResponse).toList();
     }
 }

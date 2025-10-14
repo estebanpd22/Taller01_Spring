@@ -1,10 +1,15 @@
 package unimagdalena.edu.co.Taller1.services;
 
-import unimagdalena.edu.co.Taller1.api.dto.FlightDtos;
 import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
-import unimagdalena.edu.co.Taller1.api.dto.TagDtos.TagResponse;
-import unimagdalena.edu.co.Taller1.domine.entities.*;
-import unimagdalena.edu.co.Taller1.domine.repositories.*;
+import unimagdalena.edu.co.Taller1.entities.Airline;
+import unimagdalena.edu.co.Taller1.entities.Airport;
+import unimagdalena.edu.co.Taller1.entities.Flight;
+import unimagdalena.edu.co.Taller1.entities.Tag;
+import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
+import unimagdalena.edu.co.Taller1.repositories.AirlineRepository;
+import unimagdalena.edu.co.Taller1.repositories.AirportRepository;
+import unimagdalena.edu.co.Taller1.repositories.FlightRepository;
+import unimagdalena.edu.co.Taller1.repositories.TagRepository;
 import unimagdalena.edu.co.Taller1.services.impl.FlightServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,246 +17,201 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.FlightMapperStruct;
-
-import javax.lang.model.util.Elements;
 
 import static org.assertj.core.api.Assertions.*;
-
 import java.time.OffsetDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 public class FlightServiceImplTest {
-    @Mock FlightRepository flightRepository;
-    @Mock AirportRepository airportRepository;
-    @Mock AirlineRepository airlineRepository;
-    @Mock TagRepository tagRepository;
 
     @Mock
-    FlightMapperStruct mapperStruct;
+    private FlightRepository flightRepository;
 
-    @InjectMocks FlightServiceImpl flightService;
+    @Mock
+    private AirlineRepository airlineRepository;
 
-    @Test
-    void shouldCreateFlightAndMapToResponse() {
-        Set<Long> tags = new HashSet<>();
-        tags.add(1L);
-        tags.add(2L);
+    @Mock
+    private AirportRepository airportRepository;
 
-        Set<TagRef> tagRefs = new HashSet<>();
-        tagRefs.add(new TagRef(1L, "tagRef1"));
-        tagRefs.add(new TagRef(2L, "tagRef2"));
+    @Mock
+    private TagRepository tagRepository;
 
-        var departureTime = OffsetDateTime.now();
-        var arrivalTime = OffsetDateTime.now().plusHours(2);
-
-        Flight flight = Flight.builder()
-                .number("123")
-                .departureTime(departureTime)
-                .arrivalTime(arrivalTime)
-                .airline(Airline.builder().id(1L).code("airlineCode").name("airlineName").build())
-                .origin(Airport.builder().id(2L).code("originCode").name("originName").city("originCity").build())
-                .destination(Airport.builder().id(3L).code("destinationCode").name("destinationName").city("destinationCity").build())
-                .build();
-
-        when(mapperStruct.toEntity(any(FlightCreateRequest.class))).thenReturn(flight);
-
-
-        when(flightRepository.save(any(Flight.class))).thenAnswer(invocation -> {
-            Flight flight1 =  invocation.getArgument(0);
-            flight1.setId(10L);
-            return flight1;
-        });
-
-        when(mapperStruct.toResponse(any(Flight.class))).thenAnswer(inv -> {
-            Flight flight1 =  inv.getArgument(0);
-            return new FlightResponse(flight1.getId(), flight1.getNumber(),
-                    flight1.getDepartureTime(), flight1.getArrivalTime(),
-                    new AirlineRef(flight1.getAirline().getId(), flight1.getAirline().getCode(), flight1.getAirline().getName()),
-                    new AirportRef(flight1.getOrigin().getId(), flight1.getOrigin().getCode(), flight1.getOrigin().getCity()),
-                    new AirportRef(flight1.getDestination().getId(), flight1.getDestination().getCode(), flight1.getDestination().getCity()),
-                    tagRefs);
-        });
-
-        var response = flightService.create(new FlightCreateRequest("123", departureTime, arrivalTime, 1L, 2L, 3L, Set.of(1L, 2L)));
-
-        assertThat(response.id()).isNotNull();
-        assertThat(response.number()).isEqualTo("123");
-        assertThat(response.airline().id()).isEqualTo(1L);
-        assertThat(response.origin().id()).isEqualTo(2L);
-        assertThat(response.destination().id()).isEqualTo(3L);
-        assertThat(response.tags().size()).isEqualTo(2);
-    }
+    @InjectMocks
+    private FlightServiceImpl flightService;
 
     @Test
-    void shouldUpdateFlightAndMapToResponse() {
-        Set<Long> tags = new HashSet<>();
-        tags.add(1L);
-        tags.add(2L);
+    void shouldCreateFlight() {
+        var airline = Airline.builder().id(1L).code("AV").name("Avianca").build();
+        var origin = Airport.builder().id(1L).code("BOG").name("El Dorado").city("Bogotá").build();
+        var destination = Airport.builder().id(2L).code("MDE").name("Carlitos Sehuanes").city("Medellín").build();
+        var tag = Tag.builder().id(1L).name("promo").build();
 
-        Set<TagRef> tagRefs = new HashSet<>();
-        tagRefs.add(new TagRef(1L, "tagRef1"));
-        tagRefs.add(new TagRef(2L, "tagRef2"));
-
-        OffsetDateTime departureTime = OffsetDateTime.now();
-        OffsetDateTime arrivalTime = OffsetDateTime.now().plusHours(2);
-
-        Airline mockAirline = Airline.builder().id(1L).code("airlineCode").name("airlineName").build();
-        Airport mockOrigin = Airport.builder().id(2L).code("originCode").name("originName").city("originCity").build();
-        Airport mockDestination = Airport.builder().id(3L).code("destinationCode").name("destinationName").city("destinationCity").build();
-        Set<Tag> mockTags = Set.of(
-                Tag.builder().id(1L).name("tagRef1").build(),
-                Tag.builder().id(2L).name("tagRef2").build()
+        var request = new FlightCreateRequest(
+                "AV123",
+                OffsetDateTime.now(),
+                OffsetDateTime.now().plusHours(1),
+                1L,
+                1L,
+                2L,
+                Set.of(1L)
         );
 
-        when(airlineRepository.findById(1L)).thenReturn(Optional.of(mockAirline));
-        when(airportRepository.findById(2L)).thenReturn(Optional.of(mockOrigin));
-        when(airportRepository.findById(3L)).thenReturn(Optional.of(mockDestination));
-        when(tagRepository.findTagsByIdIn(Set.of(1L, 2L))).thenReturn(mockTags);
-
-        when(flightRepository.findById(10L)).thenReturn(Optional.of(Flight.builder()
-                .id(10L).departureTime(departureTime).arrivalTime(arrivalTime)
-                .airline(Airline.builder().code("airlineCode").name("airlineCode").build())
-                .origin(Airport.builder().code("originCode").name("originName").city("originCity").build())
-                .destination(Airport.builder().code("destinationCode").name("destinationName").city("destinationCity").build())
-                .build()));
-
-        doAnswer(inv ->{
-            Flight flight = inv.getArgument(0);
-            FlightUpdateRequest flightUpdateRequest = inv.getArgument(1);
-            flight.setNumber(flightUpdateRequest.number());
-            flight.setDepartureTime(flightUpdateRequest.departureTime());
-            flight.setArrivalTime(flightUpdateRequest.arrivalTime());
-            flight.setAirline(airlineRepository.findById(flightUpdateRequest.airlineId()).get());
-            flight.setOrigin(airportRepository.findById(flightUpdateRequest.originId()).get());
-            flight.setDestination(airportRepository.findById(flightUpdateRequest.destinationId()).get());
-            flight.setTags(tagRepository.findTagsByIdIn(flightUpdateRequest.tagIds()));
-            return null;
-        }).when(mapperStruct).patch(any(Flight.class), any(FlightUpdateRequest.class));
-
+        when(airlineRepository.findById(1L)).thenReturn(Optional.of(airline));
+        when(airportRepository.findById(1L)).thenReturn(Optional.of(origin));
+        when(airportRepository.findById(2L)).thenReturn(Optional.of(destination));
+        when(tagRepository.findAllById(Set.of(1L))).thenReturn(List.of(tag));
         when(flightRepository.save(any(Flight.class))).thenAnswer(inv -> {
-            return inv.getArgument(0);
+            Flight f = inv.getArgument(0);
+            f.setId(1L);
+            return f;
         });
 
-        when(mapperStruct.toResponse(any(Flight.class))).thenAnswer(inv -> {
-            Flight flight = inv.getArgument(0);
-            return new FlightResponse(flight.getId(), flight.getNumber(),
-                    flight.getDepartureTime(), flight.getArrivalTime(),
-                    new AirlineRef(flight.getAirline().getId(), flight.getAirline().getCode(), flight.getAirline().getName()),
-                    new AirportRef(flight.getOrigin().getId(), flight.getOrigin().getCode(), flight.getOrigin().getCity()),
-                    new AirportRef(flight.getDestination().getId(), flight.getDestination().getCode(), flight.getDestination().getCity()),
-                    tagRefs);
+        var result = flightService.create(request);
 
-        });
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.number()).isEqualTo("AV123");
 
-        var response = flightService.update(new FlightUpdateRequest("123",
-                departureTime, arrivalTime, 1L, 2L,
-                3L, Set.of(1L,2L)), 10L);
-
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(10L);
-        assertThat(response.number()).isEqualTo("123");
-        assertThat(response.airline().id()).isEqualTo(1L);
-        assertThat(response.origin().id()).isEqualTo(2L);
-        assertThat(response.destination().id()).isEqualTo(3L);
-        assertThat(response.tags().size()).isEqualTo(2);
-    }
-
-    //FALTA HACER LOS TEST DESDE ESTE HACIA ABAJO
-    @Test
-    void shouldAddTagToFlightAndMapToResponse() {
-        OffsetDateTime departureTime = OffsetDateTime.now();
-        OffsetDateTime arrivalTime = OffsetDateTime.now().plusHours(2);
-
-        var flight = Optional.of(Flight.builder().id(10L).number("123")
-                .departureTime(departureTime).arrivalTime(arrivalTime)
-                .airline(Airline.builder().id(1L).code("airlineCode").name("airlineName").build())
-                .origin(Airport.builder().id(2L).code("originCode").name("originName").city("originCity").build())
-                .destination(Airport.builder().id(3L).code("destinationCode").name("destinationName").city("destinationCity").build()).build());
-
-        when(flightRepository.findById(10L));
-
-        /*
-        Flight flight = Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7)).build());
-        when(flightRepository.findById(1L)).thenReturn(flight);
-        when(tagRepository.findById(10001L)).thenReturn(Optional.of(Tag.builder().id(10001L).name("tag 1").build()));
-
-        var response = flightService.addTagToFlight(1L, 10001L);
-
-        assertThat(response.tags()).hasSize(3);
-*/
+        verify(flightRepository).save(any(Flight.class));
     }
 
     @Test
-    void shouldRemoveTagFromFlightAndMapToResponse() {
-        var now = OffsetDateTime.now();
-        var flight = Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7)).build());
-        when(flightRepository.findById(1L)).thenReturn(flight);
-        when(tagRepository.findById(10001L)).thenReturn(Optional.of(Tag.builder().id(10001L).name("tag 1").build()));
+    void shouldThrowExceptionWhenAirlineNotFoundOnCreate() {
+        var request = new FlightCreateRequest(
+                "AV123",
+                OffsetDateTime.now(),
+                OffsetDateTime.now().plusHours(1),
+                999L,
+                1L,
+                2L,
+                Set.of()
+        );
 
-        flightService.addTagToFlight(1L, 10001L);
+        when(airlineRepository.findById(999L)).thenReturn(Optional.empty());
 
-        var response = flightService.removeTagFromFlight(1L, 10001L);
+        assertThatThrownBy(() -> flightService.create(request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Airline not found");
 
-        assertThat(response.tags()).isEmpty();
+        verify(airlineRepository).findById(999L);
+        verify(flightRepository, never()).save(any());
     }
 
     @Test
-    void shouldListFlightsByAirline(){
-        var airline = Optional.of(Airline.builder().id(1L).code("XD").name("DownAirline").build());
-        when(airlineRepository.findById(1L)).thenReturn(airline);
-        when(flightRepository.findByAirline_Name("DownAirline", Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(
-                Flight.builder().id(101L).number("XD0001").airline(airline.get()).build(),
-                Flight.builder().id(102L).number("XD0002").airline(airline.get()).build(),
-                Flight.builder().id(103L).number("XD0003").airline(airline.get()).build()
-        )));
+    void shouldGetFlightById() {
+        var airline = Airline.builder().id(1L).code("AV").name("Avianca").build();
+        var origin = Airport.builder().id(1L).code("BOG").name("El Dorado").city("Bogotá").build();
+        var destination = Airport.builder().id(2L).code("MDE").name("Carlitos Sehuanes").city("Medellín").build();
 
-        var response = flightService.listFlightsByAirline(1L, Pageable.unpaged());
+        var entity = Flight.builder()
+                .id(1L)
+                .number("AV123")
+                .airline(airline)
+                .origin(origin)
+                .destination(destination)
+                .departureTime(OffsetDateTime.now())
+                .arrivalTime(OffsetDateTime.now().plusHours(1))
+                .build();
 
-        assertThat(response).hasSize(1);
-        assertThat(response).extracting(FlightResponse::airline).isNotNull();
+        when(flightRepository.findById(1L)).thenReturn(Optional.of(entity));
 
+        var result = flightService.getById(1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.number()).isEqualTo("AV123");
+
+        verify(flightRepository).findById(1L);
     }
 
     @Test
-    void shouldListScheduledFlights(){
-        var origin = Optional.of(Airport.builder().id(1L).code("XD").name("Origin").build());
-        var destination = Optional.of(Airport.builder().id(2L).code("DX").name("Final Destination").build());
-        var destination_2 = Optional.of(Airport.builder().id(3L).code("ZY").name("Final Destination 2").build());
+    void shouldUpdateFlight() {
+        var airline = Airline.builder().id(1L).code("AV").name("Avianca").build();
+        var origin = Airport.builder().id(1L).code("BOG").name("El Dorado").city("Bogotá").build();
+        var destination = Airport.builder().id(2L).code("MDE").name("Carlitos Sehuanes").city("Medellín").build();
 
-        var now = OffsetDateTime.now(); var dep_from_time_1 = now.minusHours(12); var dep_to_time_1 = now.plusHours(12);
-        var dep_from_time_2 = now.plusHours(2); var dep_to_time_2 = now.plusDays(1).plusHours(12);
+        var entity = Flight.builder()
+                .id(1L)
+                .number("AV123")
+                .airline(airline)
+                .origin(origin)
+                .destination(destination)
+                .departureTime(OffsetDateTime.now())
+                .arrivalTime(OffsetDateTime.now().plusHours(1))
+                .build();
 
-        var f1 = Flight.builder().id(101L).origin(origin.get()).destination(destination.get()).departureTime(now).arrivalTime(now.plusHours(5)).build();
-        var f2 = Flight.builder().id(102L).origin(origin.get()).destination(destination.get()).departureTime(now.plusHours(4)).arrivalTime(now.plusDays(1)).build();
-        var f3 = Flight.builder().id(103L).origin(origin.get()).destination(destination_2.get()).departureTime(now.plusDays(1))
-                .arrivalTime(now.plusDays(2).plusHours(12)).build();
+        var request = new FlightUpdateRequest(
+                "AV124",
+                OffsetDateTime.now().plusDays(1),
+                OffsetDateTime.now().plusDays(1).plusHours(1),
+                1L,
+                1L,
+                2L,
+                Set.of()
+        );
 
-        when(airportRepository.findById(1L)).thenReturn(origin);
-        when(airportRepository.findById(2L)).thenReturn(destination);
-        when(flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(origin.get().getCode(), destination.get().getCode(),
-                dep_from_time_1, dep_to_time_1, Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(f1, f2)));
-        when(flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(origin.get().getCode(), null, dep_from_time_2,
-                dep_to_time_2)).thenReturn(List.of(f2, f3));
+        when(flightRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(tagRepository.findAllById(Set.of())).thenReturn(List.of());
+        when(flightRepository.save(any(Flight.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        var response_1 = flightService.listScheduledFlights(1L, 2L, dep_from_time_1, dep_to_time_1, Pageable.unpaged());
-        var response_2 = flightService.listScheduledFlights(1L, null, dep_from_time_2, dep_to_time_2, Pageable.unpaged());
+        var result = flightService.update(1L, request);
 
-        //Response 1
-        assertThat(response_1).hasSize(2);
-        assertThat(response_1).extracting(FlightResponse::origin).isNotNull();
-        assertThat(response_1).extracting(FlightResponse::destination).isNotNull();
-        assertThat(response_1).allSatisfy(flight -> assertThat(flight.departureTime()).isBetween(dep_from_time_1, dep_to_time_1));
+        assertThat(result).isNotNull();
+        assertThat(result.number()).isEqualTo("AV124");
 
-        //Response 2
-        assertThat(response_2).hasSize(2);
-        assertThat(response_2).extracting(FlightResponse::origin).isNotNull();
-        assertThat(response_1).allSatisfy(flight -> assertThat(flight.departureTime()).isBetween(dep_from_time_2, dep_to_time_2));
+        verify(flightRepository).findById(1L);
+        verify(flightRepository).save(any(Flight.class));
+    }
+
+    @Test
+    void shouldDeleteFlight() {
+        when(flightRepository.existsById(1L)).thenReturn(true);
+
+        flightService.delete(1L);
+
+        verify(flightRepository).existsById(1L);
+        verify(flightRepository).deleteById(1L);
+    }
+
+    @Test
+    void shouldSearchFlightsByOriginAndDestination() {
+        // given
+        var airline = Airline.builder().id(1L).code("AV").name("Avianca").build();
+        var origin = Airport.builder().id(1L).code("bog").name("El Dorado").city("Bogotá").build();
+        var destination = Airport.builder().id(2L).code("mde").name("Carlitos Sehuanes").city("Medellín").build();
+
+        var flight = Flight.builder()
+                .id(1L)
+                .number("AV123")
+                .airline(airline)
+                .origin(origin)
+                .destination(destination)
+                .departureTime(OffsetDateTime.now())
+                .arrivalTime(OffsetDateTime.now().plusHours(1))
+                .build();
+
+        var from = OffsetDateTime.now().minusDays(1);
+        var to   = OffsetDateTime.now().plusDays(1);
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+
+        when(flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(
+                eq("bog"), eq("mde"), eq(from), eq(to), eq(pageable)
+        )).thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(flight), pageable, 1));
+
+        // when (nota: pasamos en minúscula para probar normalización interna del service)
+        var page = flightService.searchFlights("bog", "mde", from, to, pageable);
+
+        // then
+        assertThat(page).isNotNull();
+        assertThat(page.getTotalElements()).isEqualTo(1);
+        var result = page.getContent().get(0);
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.number()).isEqualTo("AV123");
+        assertThat(result.origin().code()).isEqualTo("bog");
+        assertThat(result.destination().code()).isEqualTo("mde");
+        verifyNoMoreInteractions(flightRepository);
     }
 }

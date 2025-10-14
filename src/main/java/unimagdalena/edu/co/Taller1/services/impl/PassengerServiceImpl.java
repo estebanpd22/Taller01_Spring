@@ -1,62 +1,94 @@
 package unimagdalena.edu.co.Taller1.services.impl;
 
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import unimagdalena.edu.co.Taller1.domine.repositories.PassengerRepository;
+import unimagdalena.edu.co.Taller1.entities.Passenger;
+import unimagdalena.edu.co.Taller1.entities.PassengerProfile;
+import unimagdalena.edu.co.Taller1.repositories.PassengerProfileRepository;
+import unimagdalena.edu.co.Taller1.repositories.PassengerRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.PassengerService;
 import unimagdalena.edu.co.Taller1.api.dto.PassengerDtos.*;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.PassengerMapperStruct;
+import unimagdalena.edu.co.Taller1.services.mapper.PassengerMapper;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PassengerServiceImpl implements PassengerService {
+
     private final PassengerRepository passengerRepository;
-    private final PassengerMapperStruct passengerMapperStruct;
+    private final PassengerProfileRepository passengerProfileRepository;
 
     @Override
-    public PassengerResponse create(PassengerCreateRequest request) {
-        var passenger = passengerMapperStruct.toEntity(request);
-        return passengerMapperStruct.toResponse(passengerRepository.save(passenger));
-    }
+    public PassengerResponse createPassenger(PassengerCreateRequest request) {
+        if (request == null)throw new NotFoundException("Passenger not found");
+        if (request.email() == null)throw new NotFoundException("Passenger email not found");
+        passengerRepository.findByEmailIgnoreCase(request.email()).ifPresent(passenger -> {throw new IllegalArgumentException("Passenger email already exists");});
+        PassengerProfile passengerProfile = null;
+        if (request.profileDto() != null){
+            passengerProfile = PassengerProfile.builder().phone(request.profileDto().phone())
+                    .countryCode(request.profileDto().countryCode()).build();
+        }
+        Passenger passenger = PassengerMapper.toEntity(request);
+        return PassengerMapper.toResponse( passengerRepository.save(passenger));
 
-    @Override @Transactional(readOnly = true)
-    public PassengerResponse getById(@Nonnull Long id) {
-        return passengerRepository.findById(id).map(passengerMapperStruct::toResponse)
-                .orElseThrow(() -> new NotFoundException("Passenger %d not found.".formatted(id)));
-    }
-
-    @Override @Transactional(readOnly = true)
-    public PassengerResponse getByEmail(@Nonnull String email) {
-        return passengerRepository.findByEmailIgnoreCase(email).map(passengerMapperStruct::toResponse)
-                .orElseThrow(() -> new NotFoundException("Passenger with email %s not found.".formatted(email)));
-    }
-
-    @Override @Transactional(readOnly = true)
-    public PassengerResponse getPassengerWithProfile(@Nonnull String email) {
-        return passengerRepository.findByEmailIgnoreCase(email).map(passengerMapperStruct::toResponse)
-                .orElseThrow(() -> new NotFoundException("Passenger with email %s not found.".formatted(email)));
     }
 
     @Override
-    public PassengerResponse update(@Nonnull Long id, PassengerUpdateRequest request) {
-        var passenger = passengerRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Passenger %d not found.".formatted(id)));
-        passengerMapperStruct.patch(passenger, request);
-        return passengerMapperStruct.toResponse(passengerRepository.save(passenger));
+    public PassengerResponse updatePassenger(Long id,PassengerUpdateRequest request) {
+        if (request == null) throw new IllegalArgumentException("PassengerUpdateRequest cannot be null");
+
+        Passenger passenger = passengerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Passenger not found with id: " + id));
+
+        // Validar email si se cambia
+        if (request.email() != null && !request.email().equalsIgnoreCase(passenger.getEmail())) {
+            passengerRepository.findByEmailIgnoreCase(request.email())
+                    .ifPresent(p -> { throw new IllegalArgumentException("Email already in use: " + request.email()); });
+            passenger.setEmail(request.email());
+        }
+
+        if (request.fullname() != null) {
+            passenger.setFullName(request.fullname());
+        }
+
+        if (request.profileDto() != null) {
+            PassengerProfile profile = passenger.getProfile();
+            if (profile == null) {
+                profile = new PassengerProfile();
+                passenger.setProfile(profile);
+            }
+            profile.setPhone(request.profileDto().phone());
+            profile.setCountryCode(request.profileDto().countryCode());
+        }
+
+        Passenger updated = passengerRepository.save(passenger);
+        return PassengerMapper.toResponse(updated);
     }
 
     @Override
-    public void delete(@Nonnull Long id) {
-        passengerRepository.deleteById(id);
+    public PassengerResponse get(Long id) {
+        Passenger passenger = passengerRepository.findById(id).orElseThrow(() -> new NotFoundException("Passenger not found with id: " + id));
+        return PassengerMapper.toResponse(passenger);
     }
 
-    @Override @Transactional(readOnly = true)
-    public Page<PassengerResponse> listAllPassengers(Pageable pageable) {
-        return passengerRepository.findAll(pageable).map(passengerMapperStruct::toResponse);
+    @Override
+    public PassengerResponse getByEmail(String email) {
+        Passenger passenger = passengerRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new NotFoundException("Passenger not found with email: " + email));
+        return PassengerMapper.toResponse(passenger);
+    }
+
+    @Override
+    public PassengerResponse getByEmailWithProfile(String email) {
+        Passenger passenger = passengerRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new NotFoundException("Passenger not found with email: " + email));
+        return PassengerMapper.toResponse(passenger);
+    }
+
+    @Override
+    public void delete(Long id) {
+        Passenger passenger = passengerRepository.findById(id).orElseThrow(() -> new NotFoundException("Passenger not found with id: " + id));
+        passengerRepository.delete(passenger);
     }
 }

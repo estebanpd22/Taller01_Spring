@@ -1,110 +1,143 @@
 package unimagdalena.edu.co.Taller1.services;
 
-import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos;
 import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Airline;
-import unimagdalena.edu.co.Taller1.domine.repositories.AirlineRepository;
+import unimagdalena.edu.co.Taller1.entities.Airline;
+import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
+import unimagdalena.edu.co.Taller1.repositories.AirlineRepository;
 import unimagdalena.edu.co.Taller1.services.impl.AirlineServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.AirlineMapperStruct;
 
-import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AirlineServiceImplTest {
-    @Mock
-    AirlineRepository airlineRepository;
 
     @Mock
-    AirlineMapperStruct mapper;
+    private AirlineRepository airlineRepository;
 
     @InjectMocks
-    AirlineServiceImpl airlineService;
+    private AirlineServiceImpl airlineService;
 
     @Test
-    void shouldCreateAirlineAndMapToResponse(){
-        Airline airlineEntity = Airline.builder()
-                .code("XD")
-                .name("Despegar.com")
-                .build();
+    void shouldCreateAirline() {
+        var request = new AirlineCreateRequest("av", "Avianca");
 
-        when(mapper.toEntity(any(AirlineCreateRequest.class)))
-                .thenReturn(airlineEntity);
-
+        when(airlineRepository.findByCodeIgnoreCase("AV")).thenReturn(Optional.empty());
         when(airlineRepository.save(any(Airline.class))).thenAnswer(inv -> {
             Airline a = inv.getArgument(0);
             a.setId(1L);
             return a;
         });
 
-        when(mapper.toResponse(any(Airline.class))).thenAnswer(inv -> {
-            Airline a = inv.getArgument(0);
-            return new AirlineResponse(a.getId(), a.getCode(), a.getName());
-        });
+        var result = airlineService.create(request);
 
-        var response = airlineService.create(new AirlineCreateRequest("XD", "Despegar.com"));
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.code()).isEqualTo("AV");
+        assertThat(result.name()).isEqualTo("Avianca");
 
-        assertThat(response.id()).isNotNull();
-        assertThat(response.code()).isEqualTo("XD");
-        assertThat(response.name()).isEqualTo("Despegar.com");
+        verify(airlineRepository).findByCodeIgnoreCase("AV");
+        verify(airlineRepository).save(any(Airline.class));
     }
 
     @Test
-    void shouldUpdateAirlineAndMapToResponse(){
-        when(airlineRepository.findById(1L)).thenReturn(
-                Optional.of(Airline.builder().id(1L).code("XD").name("Despegar.com").build())
-        );
+    void shouldThrowExceptionWhenCreatingDuplicateCode() {
+        var request = new AirlineCreateRequest("av", "Avianca");
+        var existing = Airline.builder().id(1L).code("AV").name("Avianca").build();
 
-        doAnswer(inv -> {
-            Airline airline = inv.getArgument(1);
-            AirlineUpdateRequest request = inv.getArgument(0);
-            airline.setCode(request.code());
-            airline.setName(request.name());
-            return null;
-        }).when(mapper).patch(any(AirlineUpdateRequest.class), any(Airline.class));
+        when(airlineRepository.findByCodeIgnoreCase("AV")).thenReturn(Optional.of(existing));
 
+        assertThatThrownBy(() -> airlineService.create(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Airline code already exists");
+
+        verify(airlineRepository).findByCodeIgnoreCase("AV");
+        verify(airlineRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldGetAirlineById() {
+        var entity = Airline.builder().id(1L).code("AV").name("Avianca").build();
+
+        when(airlineRepository.findById(1L)).thenReturn(Optional.of(entity));
+
+        var result = airlineService.get(1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.code()).isEqualTo("AV");
+
+        verify(airlineRepository).findById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAirlineNotFound() {
+        when(airlineRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> airlineService.get(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Airline not found");
+
+        verify(airlineRepository).findById(999L);
+    }
+
+    @Test
+    void shouldGetAirlineByCode() {
+        var entity = Airline.builder().id(1L).code("AV").name("Avianca").build();
+
+        when(airlineRepository.findByCodeIgnoreCase("AV")).thenReturn(Optional.of(entity));
+
+        var result = airlineService.getByCode("av");
+
+        assertThat(result).isNotNull();
+        assertThat(result.code()).isEqualTo("AV");
+
+        verify(airlineRepository).findByCodeIgnoreCase("AV");
+    }
+
+    @Test
+    void shouldUpdateAirline() {
+        var entity = Airline.builder().id(1L).code("AV").name("Avianca").build();
+        var request = new AirlineUpdateRequest("AV", "Avianca Airlines");
+
+        when(airlineRepository.findById(1L)).thenReturn(Optional.of(entity));
         when(airlineRepository.save(any(Airline.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(mapper.toResponse(any(Airline.class))).thenAnswer(inv -> {
-            Airline a = inv.getArgument(0);
-            return new AirlineResponse(a.getId(), a.getCode(), a.getName());
-        });
+        var result = airlineService.update(1L, request);
 
-        var response = airlineService.update(1L, new AirlineUpdateRequest("XD", "Wingo"));
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isEqualTo("Avianca Airlines");
 
-        assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.code()).isEqualTo("XD");
-        assertThat(response.name()).isEqualTo("Wingo");
+        verify(airlineRepository).findById(1L);
+        verify(airlineRepository).save(any(Airline.class));
     }
 
     @Test
-    void shouldListAllAirlinesInPages(){
-        when(airlineRepository.findAll(Pageable.ofSize(4))).thenReturn(new PageImpl<>(List.of(
-                Airline.builder().id(1L).code("XD").name("Despegar.com").build(),
-                Airline.builder().id(2L).code("DD").name("Wingo").build(),
-                Airline.builder().id(3L).code("XL").name("Trivago").build(),
-                Airline.builder().id(4L).code("VI").name("LATAM Airlines").build()
-        )));
+    void shouldDeleteAirline() {
+        when(airlineRepository.existsById(1L)).thenReturn(true);
 
-        when(mapper.toResponse(any(Airline.class))).thenAnswer(inv -> {
-            Airline a = inv.getArgument(0);
-            return new AirlineResponse(a.getId(), a.getCode(), a.getName());
-        });
+        airlineService.delete(1L);
 
-        var response = airlineService.airlinePageList(Pageable.ofSize(4));
+        verify(airlineRepository).existsById(1L);
+        verify(airlineRepository).deleteById(1L);
+    }
 
-        assertThat(response).hasSize(4);
-        assertThat(response).extracting(AirlineResponse::id).containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistentAirline() {
+        when(airlineRepository.existsById(999L)).thenReturn(false);
+
+        assertThatThrownBy(() -> airlineService.delete(999L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Airline not found");
+
+        verify(airlineRepository).existsById(999L);
+        verify(airlineRepository, never()).deleteById(any());
     }
 }
 

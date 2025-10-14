@@ -1,15 +1,15 @@
 package unimagdalena.edu.co.Taller1.services.mapper;
 
 import unimagdalena.edu.co.Taller1.api.dto.PassengerDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Passenger;
-import unimagdalena.edu.co.Taller1.domine.entities.PassengerProfile;
+import unimagdalena.edu.co.Taller1.entities.Passenger;
+import unimagdalena.edu.co.Taller1.entities.PassengerProfile;
 
 public class PassengerMapper {
     public static Passenger toEntity(PassengerCreateRequest passengerCreateRequest) {
         var profile = (passengerCreateRequest.profileDto() == null ) ? null :
                 PassengerProfile.builder().phone(passengerCreateRequest.profileDto().phone())
                         .countryCode(passengerCreateRequest.profileDto().countryCode()).build();
-        return Passenger.builder().fullName(passengerCreateRequest.fullName())
+        return Passenger.builder().fullName(passengerCreateRequest.fullname())
                 .email(passengerCreateRequest.email()).profile(profile).build();
 
 
@@ -17,8 +17,8 @@ public class PassengerMapper {
 
     public static void UpdateEntity(PassengerUpdateRequest dto, Passenger passenger, PassengerProfile profile) {
         if (passenger == null || dto == null) return;
-        if (dto.fullName() != null) {
-            passenger.setFullName(dto.fullName());
+        if (dto.fullname() != null) {
+            passenger.setFullName(dto.fullname());
         }
         if (dto.email() != null) {
             passenger.setEmail(dto.email());
@@ -34,19 +34,5 @@ public class PassengerMapper {
                 new PassengerProfileDto(passenger.getProfile().getPhone(), passenger.getProfile().getCountryCode());
         return new PassengerResponse((long) passenger.getId(),passenger.getFullName(),passenger.getEmail(),profileDto);
 
-    }
-
-    public static void patch(Passenger entity, PassengerUpdateRequest request) {
-        if (request.fullName() != null) entity.setFullName(request.fullName());
-        if (request.email() != null) entity.setEmail(request.email());
-        if (request.profileDto() != null) {
-            var entityProfile =  entity.getProfile();
-            if (entityProfile == null) {
-                entityProfile = new PassengerProfile();
-                entity.setProfile(entityProfile);
-            }
-            if (request.profileDto().phone() != null) entityProfile.setPhone(request.profileDto().phone());
-            if (request.profileDto().countryCode() != null) entityProfile.setCountryCode(request.profileDto().countryCode());
-        }
     }
 }

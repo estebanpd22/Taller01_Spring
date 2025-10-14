@@ -1,26 +1,30 @@
-package unimagdalena.edu.co.Taller1.services.mapperStruct;
+/* package unimagdalena.edu.co.Taller1.services.mapperStruct;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos;
-import unimagdalena.edu.co.Taller1.domine.entities.Booking;
-import unimagdalena.edu.co.Taller1.domine.entities.BookingItem;
-import unimagdalena.edu.co.Taller1.domine.entities.BookingItem.*;
+import org.mapstruct.*;
+import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos.*;
+import unimagdalena.edu.co.Taller1.entities.BookingItem;
+import unimagdalena.edu.co.Taller1.entities.Flight;
 
-import java.util.List;
-
+@Mapper(
+        componentModel = "spring",
+        uses = {FlightMapperStruct.class},
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface BookingItemMapperStruct {
-    BookingItem toEntity(BookingItemDtos.BookingItemCreateRequest request);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "booking", ignore = true)
+    @Mapping(target = "flight", source = "flight")
+    BookingItem toEntity(BookingItemCreateRequest request, Flight flight);
 
-    BookingItemDtos.BookingItemResponse toItemResponse(BookingItem entity);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "booking", ignore = true)
+    @Mapping(target = "flight", source = "flight")
+    void updateEntity(
+            @MappingTarget BookingItem item,
+            BookingItemUpdateRequest request,
+            Flight flight
+    );
 
-    List<BookingItemDtos.BookingItemResponse> toItemResponseList(List<BookingItem> entities);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void itemPatch(BookingItemDtos.BookingItemUpdateRequest request, @MappingTarget BookingItem entity);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateBookingFromRequest(BookingItemDtos.BookingItemUpdateRequest request, @MappingTarget Booking entity);
+    BookingItemResponse toResponse(BookingItem item);
 }
-
+*/

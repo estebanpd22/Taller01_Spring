@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookingService {
-    BookingResponse create(BookingCreateRequest request);
-    BookingResponse getById(Long id);
-
-    Page<BookingResponse> listBookingsByPassengerEmailAndOrderedMostRecently(String passenger_email, Pageable pageable);
-    Optional<BookingResponse> fetchGrpahById(Long id);
-
-    BookingResponse update(Long id, BookingUpdateRequest request);
-    void delete(Long id);
+    BookingResponse createBooking(BookingCreateRequest request);
+    BookingResponse updateBooking(Long id,BookingUpdateRequest request);
+    BookingResponse getBookingId(long id);
+    void deleteById(long id);
+    List<BookingResponse> finBookingByPassengerEmail(String email);
+    BookingResponse getBookingWithDetails(long id);
 }

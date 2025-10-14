@@ -1,47 +1,73 @@
 package unimagdalena.edu.co.Taller1.services.mapper;
 
 import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
-import unimagdalena.edu.co.Taller1.api.dto.TagDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Tag;
-import unimagdalena.edu.co.Taller1.domine.entities.Flight;
+import unimagdalena.edu.co.Taller1.entities.Airline;
+import unimagdalena.edu.co.Taller1.entities.Airport;
+import unimagdalena.edu.co.Taller1.entities.Flight;
+
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FlightMapper {
-    public static Flight ToEntity(FlightCreateRequest request) {
-        return Flight.builder().number(request.number()).arrivalTime(request.arrivalTime())
-                .departureTime(request.departureTime()).build();
+
+    public static Flight toEntity(FlightCreateRequest dto) {
+        if (dto == null) return null;
+        Flight entity = new Flight();
+        entity.setNumber(dto.number());
+        entity.setDepartureTime(dto.departureTime());
+        entity.setArrivalTime(dto.arrivalTime());
+        // Resto de atributos en services
+        return entity;
     }
 
-    //Check out this method, 'cause how can I get the seatsInventory of a flight when the flight doesn't have a collection of them?
-    public static FlightResponse toResponse(Flight flight) {
-        Set<TagRef> tagResponses = flight.getTags().stream()
-                .map(tag -> new TagRef(tag.getId(), tag.getName()))
-                .collect(Collectors.toSet());
+    public static void toUpdateEntity(FlightUpdateRequest dto, Flight entity) {
+        if (dto == null || entity == null) return;
+        entity.setNumber(dto.number());
+        entity.setDepartureTime(dto.departureTime());
+        entity.setArrivalTime(dto.arrivalTime());
+        // Resto de atributos en services
+    }
+
+    public static FlightResponse toResponse(Flight entity) {
+        if (entity == null) return null;
+
+        AirlineRef airlineRef = null;
+        if (entity.getAirline() != null) {
+            Airline a = entity.getAirline();
+            airlineRef = new AirlineRef(a.getId(), a.getCode(), a.getName());
+        }
+
+        AirportRef originRef = null;
+        if (entity.getOrigin() != null) {
+            Airport o = entity.getOrigin();
+            originRef = new AirportRef(o.getId(), o.getCode(), o.getCity());
+        }
+
+        AirportRef destinationRef = null;
+        if (entity.getDestination() != null) {
+            Airport d = entity.getDestination();
+            destinationRef = new AirportRef(d.getId(), d.getCode(), d.getCity());
+        }
+
+        Set<TagRef> tagRefs = Set.of();
+        if (entity.getTags() != null) {
+            tagRefs = entity.getTags().stream()
+                    .filter(Objects::nonNull)
+                    .map(t -> new TagRef(t.getId(), t.getName()))
+                    .collect(Collectors.toSet());
+        }
 
         return new FlightResponse(
-                flight.getId(),
-                flight.getNumber(),
-                flight.getDepartureTime(),
-                flight.getArrivalTime(),
-                flight.getAirline() != null
-                        ? new AirlineRef(flight.getAirline().getId(), flight.getAirline().getCode(), flight.getAirline().getName())
-                        : null,
-                flight.getOrigin() != null
-                        ? new AirportRef(flight.getOrigin().getId(), flight.getOrigin().getCode(), flight.getOrigin().getCity())
-                        : null,
-                flight.getDestination() != null
-                        ? new AirportRef(flight.getDestination().getId(), flight.getDestination().getCode(), flight.getDestination().getCity())
-                        : null,
-                tagResponses
+                entity.getId(),
+                entity.getNumber(),
+                entity.getDepartureTime(),
+                entity.getArrivalTime(),
+                airlineRef,
+                originRef,
+                destinationRef,
+                tagRefs
         );
     }
-
-    public static void patch(Flight entity, FlightUpdateRequest request ) {
-        if (request.number() != null ) entity.setNumber(request.number());
-        if (request.departureTime() != null ) entity.setDepartureTime(request.departureTime());
-        if (request.arrivalTime() != null ) entity.setArrivalTime(request.arrivalTime());
-    }
-
 }
 

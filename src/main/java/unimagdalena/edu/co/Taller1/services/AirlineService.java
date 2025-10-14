@@ -8,10 +8,9 @@ import java.util.List;
 
 public interface AirlineService {
     AirlineResponse create(AirlineCreateRequest request);
-    AirlineResponse getById(Long id);
+    AirlineResponse get(Long id);
+
     AirlineResponse getByCode(String code);
     AirlineResponse update(Long id, AirlineUpdateRequest request);
     void delete(Long id);
-    List<AirlineResponse> airlineList();
-    Page<AirlineResponse> airlinePageList(Pageable pageable);
 }

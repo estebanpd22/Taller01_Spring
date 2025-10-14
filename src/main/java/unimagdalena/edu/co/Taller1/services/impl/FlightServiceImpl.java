@@ -3,107 +3,148 @@ package unimagdalena.edu.co.Taller1.services.impl;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import unimagdalena.edu.co.Taller1.api.dto.FlightDtos.*;
-import unimagdalena.edu.co.Taller1.domine.entities.Airport;
-import unimagdalena.edu.co.Taller1.domine.entities.Flight;
-import unimagdalena.edu.co.Taller1.domine.repositories.AirlineRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.AirportRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.FlightRepository;
-import unimagdalena.edu.co.Taller1.domine.repositories.TagRepository;
+import unimagdalena.edu.co.Taller1.entities.Airline;
+import unimagdalena.edu.co.Taller1.entities.Airport;
+import unimagdalena.edu.co.Taller1.entities.Flight;
+import unimagdalena.edu.co.Taller1.entities.Tag;
+import unimagdalena.edu.co.Taller1.repositories.AirlineRepository;
+import unimagdalena.edu.co.Taller1.repositories.AirportRepository;
+import unimagdalena.edu.co.Taller1.repositories.FlightRepository;
+import unimagdalena.edu.co.Taller1.repositories.TagRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.FlightService;
-import unimagdalena.edu.co.Taller1.services.mapperStruct.FlightMapperStruct;
+import unimagdalena.edu.co.Taller1.services.mapper.FlightMapper;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service @RequiredArgsConstructor @Transactional
 public class FlightServiceImpl implements FlightService {
+
     private final FlightRepository flightRepository;
     private final AirlineRepository airlineRepository;
     private final AirportRepository airportRepository;
     private final TagRepository tagRepository;
-    private final FlightMapperStruct flightMapperStruct;
-
 
     @Override
+    @Transactional
     public FlightResponse create(FlightCreateRequest request) {
-        var flight = flightMapperStruct.toEntity(request);
-        return flightMapperStruct.toResponse(flightRepository.save(flight));
+        Airline airline = airlineRepository.findById(request.airlineId())
+                .orElseThrow(() -> new NotFoundException("Airline not found with id: " + request.airlineId()));
+
+        Airport origin = airportRepository.findById(request.originId())
+                .orElseThrow(() -> new NotFoundException("Origin airport not found with id: " + request.originId()));
+
+        Airport destination = airportRepository.findById(request.destinationId())
+                .orElseThrow(() -> new NotFoundException("Destination airport not found with id: " + request.destinationId()));
+
+        Set<Tag> tags = new HashSet<>();
+        if (request.tagIds() != null && !request.tagIds().isEmpty()) {
+            tags = new HashSet<>(tagRepository.findAllById(request.tagIds()));
+        }
+
+        Flight flight = Flight.builder()
+                .number(request.number())
+                .departureTime(request.departureTime())
+                .arrivalTime(request.arrivalTime())
+                .airline(airline)
+                .origin(origin)
+                .destination(destination)
+                .tags(tags)
+                .build();
+
+        Flight saved = flightRepository.save(flight);
+        return FlightMapper.toResponse(saved);
     }
 
-    @Override @Transactional(readOnly = true)
-    public FlightResponse getById(@Nonnull Long id) {
-        return flightRepository.findById(id).map(flightMapperStruct::toResponse).orElseThrow(
-                () -> new NotFoundException("Flight %d not found.".formatted(id))
-        );
+    @Override
+    public FlightResponse getById(Long id) {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Flight not found with id: " + id));
+        return FlightMapper.toResponse(flight);
     }
 
-    @Override //A flight just can update his destination airport, I looked into it
-    public FlightResponse update(FlightUpdateRequest request, @Nonnull Long id) {
-        var flight = flightRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found.".formatted(id))
-        );
-        flightMapperStruct.patch(flight, request);
-        if (request.destinationId() != null) {
-            var destination = airportRepository.findById(request.destinationId())
-                    .orElseThrow(() -> new NotFoundException("Airport %d not found."
-                            .formatted(request.destinationId())));
+    @Override
+    public List<FlightResponse> getAll() {
+        return flightRepository.findAll().stream()
+                .map(FlightMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public FlightResponse update(Long id, FlightUpdateRequest request) {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Flight not found with id: " + id));
+
+        if (request.airlineId() != null && !request.airlineId().equals(flight.getAirline().getId())) {
+            Airline airline = airlineRepository.findById(request.airlineId())
+                    .orElseThrow(() -> new NotFoundException("Airline not found with id: " + request.airlineId()));
+            flight.setAirline(airline);
+        }
+
+        if (request.originId() != null && !request.originId().equals(flight.getOrigin().getId())) {
+            Airport origin = airportRepository.findById(request.originId())
+                    .orElseThrow(() -> new NotFoundException("Origin airport not found with id: " + request.originId()));
+            flight.setOrigin(origin);
+        }
+
+        if (request.destinationId() != null && !request.destinationId().equals(flight.getDestination().getId())) {
+            Airport destination = airportRepository.findById(request.destinationId())
+                    .orElseThrow(() -> new NotFoundException("Destination airport not found with id: " + request.destinationId()));
             flight.setDestination(destination);
         }
-        return flightMapperStruct.toResponse(flightRepository.save(flight));
+
+        if (request.number() != null) {
+            flight.setNumber(request.number());
+        }
+        if (request.departureTime() != null) {
+            flight.setDepartureTime(request.departureTime());
+        }
+        if (request.arrivalTime() != null) {
+            flight.setArrivalTime(request.arrivalTime());
+        }
+
+        if (request.tagIds() != null) {
+            Set<Tag> tags = new HashSet<>(tagRepository.findAllById(request.tagIds()));
+            flight.setTags(tags);
+        }
+
+        Flight updated = flightRepository.save(flight);
+        return FlightMapper.toResponse(updated);
     }
 
     @Override
-    public void delete(@Nonnull Long id) {
+    @Transactional
+    public void delete(Long id) {
+        if (!flightRepository.existsById(id)) {
+            throw new NotFoundException("Flight not found with id: " + id);
+        }
         flightRepository.deleteById(id);
     }
 
-    @Override @Transactional(readOnly = true)
-    public Page<FlightResponse> listScheduledFlights(Long origin_airport_id, Long destination_airport_id, @Nonnull OffsetDateTime from, @Nonnull OffsetDateTime to, Pageable pageable) {
-        if (from.isAfter(to)) throw new IllegalArgumentException("\"From\" date is after \"to\" date");
-
-        var origin = (origin_airport_id != null)?  airportRepository.findById(origin_airport_id): Optional.<Airport>empty();
-        var destination = (destination_airport_id != null)? airportRepository.findById(destination_airport_id) : Optional.<Airport>empty();
-
-        var flights = (origin.isPresent() && destination.isPresent())?
-                flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(origin.get().getCode(), destination.get().getCode(), from, to, pageable):
-                new PageImpl<>(
-                        flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(
-                                origin.map(Airport::getCode).orElse(null), destination.map(Airport::getCode).orElse(null), from, to
-                        )
-                );
-
-        return flights.map(flightMapperStruct::toResponse);
+    @Override
+    public Page<FlightResponse> findByAirlineName(String airlineName, Pageable pageable) {
+        return flightRepository.findByAirline_Name(airlineName, pageable)
+                .map(FlightMapper::toResponse);
     }
 
     @Override
-    public FlightResponse addTagToFlight(@Nonnull Long flight_id, @Nonnull Long tag_id) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(flight_id)));
-        var tag = tagRepository.findById(tag_id).orElseThrow(() -> new NotFoundException("Tag %d not found".formatted(tag_id)));
-        flightMapperStruct.addTag(flight, tag);
-
-        return flightMapperStruct.toResponse(flight);
-    }
-
-    @Override
-    public FlightResponse removeTagFromFlight(@Nonnull Long flight_id, @Nonnull Long tag_id) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(flight_id)));
-        var tag = tagRepository.findById(tag_id).orElseThrow(() -> new NotFoundException("Tag %d not found".formatted(tag_id)));
-
-        flight.getTags().remove(tag);
-        tag.getFlights().remove(flight);
-
-        return flightMapperStruct.toResponse(flight);
-    }
-
-    @Override @Transactional(readOnly = true)
-    public Page<FlightResponse> listFlightsByAirline(@Nonnull Long airline_id, Pageable pageable) {
-        var airline = airlineRepository.findById(airline_id).orElseThrow(() -> new NotFoundException("Airline %d not found".formatted(airline_id)));
-        return flightRepository.findByAirline_Name(airline.getName(), pageable).map(flightMapperStruct::toResponse);
+    public Page<FlightResponse> searchFlights(
+            String originCode,
+            String destinationCode,
+            OffsetDateTime from,
+            OffsetDateTime to,
+            Pageable pageable) {
+        return flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(
+                        originCode, destinationCode, from, to, pageable)
+                .map(FlightMapper::toResponse);
     }
 }
