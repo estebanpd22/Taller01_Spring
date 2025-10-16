@@ -1,6 +1,8 @@
 package unimagdalena.edu.co.Taller1.services.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import unimagdalena.edu.co.Taller1.api.dto.AirportDtos.*;
@@ -9,6 +11,8 @@ import unimagdalena.edu.co.Taller1.repositories.AirportRepository;
 import unimagdalena.edu.co.Taller1.exceptions.NotFoundException;
 import unimagdalena.edu.co.Taller1.services.AirportService;
 import unimagdalena.edu.co.Taller1.services.mapper.AirportMapper;
+
+import java.util.List;
 
 @Transactional
 @Service
@@ -80,5 +84,15 @@ public class AirportServiceImpl implements AirportService {
             throw new NotFoundException("Airport not found: id=" + id);
         }
         airportRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<AirportResponse> airportList(Pageable pageable) {
+        return airportRepository.findAll(pageable).map(AirportMapper::toResponse);
+    }
+
+    @Override
+    public List<AirportResponse> cityList(String city) {
+        return airportRepository.findByCity(city).stream().map(AirportMapper::toResponse).toList();
     }
 }

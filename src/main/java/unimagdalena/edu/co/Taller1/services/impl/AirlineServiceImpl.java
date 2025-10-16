@@ -1,5 +1,7 @@
 package unimagdalena.edu.co.Taller1.services.impl;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos.*;
 import unimagdalena.edu.co.Taller1.entities.Airline;
 import unimagdalena.edu.co.Taller1.repositories.AirlineRepository;
@@ -9,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import unimagdalena.edu.co.Taller1.services.mapper.AirlineMapper;
+
+import java.util.List;
 
 
 @Service @Transactional @RequiredArgsConstructor
@@ -86,5 +90,10 @@ public class AirlineServiceImpl implements AirlineService {
     private boolean equalsIgnoreCaseSafe(String a, String b) {
         if (a == null) return b == null;
         return a.equalsIgnoreCase(b);
+    }
+
+    @Override @Transactional(readOnly = true)
+    public List<AirlineResponse> airlineList() {
+        return airlineRepository.findAll().stream().map(AirlineMapper::toResponse).toList();
     }
 }

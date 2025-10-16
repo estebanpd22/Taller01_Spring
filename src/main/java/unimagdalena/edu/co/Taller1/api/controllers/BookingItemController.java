@@ -1,16 +1,21 @@
 package unimagdalena.edu.co.Taller1.api.controllers;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import unimagdalena.edu.co.Taller1.api.dto.BookingItemDtos.*;
 import unimagdalena.edu.co.Taller1.services.BookingItemService;
 
 import java.util.List;
-
+@RestController
+@RequiredArgsConstructor
+@Validated
+@RequestMapping("/api/bookings/{bookingId}/items")
 public class BookingItemController {
-    private BookingItemService service;
+    private final BookingItemService service;
     @PostMapping
     public ResponseEntity<BookingItemResponse> create(@PathVariable Long bookingId,
                                                                       @Valid @RequestBody BookingItemCreateRequest request,

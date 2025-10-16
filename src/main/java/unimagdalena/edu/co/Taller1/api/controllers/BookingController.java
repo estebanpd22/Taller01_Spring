@@ -1,15 +1,22 @@
 package unimagdalena.edu.co.Taller1.api.controllers;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import unimagdalena.edu.co.Taller1.api.dto.BookingDtos;
 import unimagdalena.edu.co.Taller1.services.BookingService;
 
+import java.util.List;
 
+@RestController
+@RequestMapping("/api/bookings")
+@RequiredArgsConstructor
+@Validated
 public class BookingController {
-    private BookingService service;
+    private final BookingService service;
 
     @PostMapping
     public ResponseEntity<BookingDtos.BookingResponse> create(@Valid @RequestBody BookingDtos.BookingCreateRequest request,
@@ -33,4 +40,13 @@ public class BookingController {
         return ResponseEntity.ok(service.updateBooking(id, request));
     }
 
+    @GetMapping("/by-passenger")
+    public ResponseEntity<List<BookingDtos.BookingResponse>> findByPassengerEmail(@RequestParam String email){
+        return  ResponseEntity.ok(service.finBookingByPassengerEmail(email));
+    }
+
+    @GetMapping("/booking-with-details/{id}")
+    public ResponseEntity<BookingDtos.BookingResponse> getBookingWithDetails(@PathVariable long id){
+        return ResponseEntity.ok(service.getBookingWithDetails(id));
+    }
 }

@@ -13,4 +13,5 @@ public interface AirlineService {
     AirlineResponse getByCode(String code);
     AirlineResponse update(Long id, AirlineUpdateRequest request);
     void delete(Long id);
+    List<AirlineResponse> airlineList();
 }

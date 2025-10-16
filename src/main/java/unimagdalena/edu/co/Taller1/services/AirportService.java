@@ -12,4 +12,6 @@ public interface AirportService {
     AirportResponse getByCode(String code);
     AirportResponse  update(Long id, AirportUpdateRequest request);
     void delete(Long id);
+    Page<AirportResponse> airportList(Pageable pageable);
+    List<AirportResponse> cityList(String city);
 }

@@ -9,6 +9,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import unimagdalena.edu.co.Taller1.api.dto.AirlineDtos;
 import unimagdalena.edu.co.Taller1.services.AirlineService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/airlines")
 @RequiredArgsConstructor
@@ -46,5 +48,10 @@ public class AirlineController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AirlineDtos.AirlineResponse>> listAllAirlines() {
+        return ResponseEntity.ok(service.airlineList());
     }
 }
